@@ -1,24 +1,5 @@
 {
- "venues": [
-  {
-   "name": "Test",
-   "l1": "Retail and Consumer Goods",
-   "l2": "Gift Shop",
-   "region": "Bangkok"
-  },
-  {
-   "name": "Final Test",
-   "l1": "Clothing and Fashion",
-   "l2": "Clothing Store",
-   "region": "Bangkok"
-  },
-  {
-   "name": "Test Final 2",
-   "l1": "Retail and Consumer Goods",
-   "l2": "Flower Shop",
-   "region": "Bangkok"
-  }
- ],
+ "venues": [],
  "regions": [
   "Bangkok",
   "Ubon",
