@@ -2,20 +2,20 @@
  "venues": [
   {
    "name": "Test",
-   "l1": "Childcare and Caregiving",
-   "l2": "Home",
+   "l1": "Retail and Consumer Goods",
+   "l2": "Gift Shop",
    "region": "Bangkok"
   },
   {
    "name": "Final Test",
-   "l1": "Clothing and Fashion",
-   "l2": "Packaged Foods",
+   "l1": "Home",
+   "l2": "Clothing Store",
    "region": "Bangkok"
   },
   {
    "name": "Test Final 2",
-   "l1": "Construction and Hardware",
-   "l2": "Grocery Store",
+   "l1": "Retail and Consumer Goods",
+   "l2": "Flower Shop",
    "region": "Bangkok"
   }
  ],
