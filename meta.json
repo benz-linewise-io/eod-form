@@ -5,6 +5,12 @@
    "l1": "Childcare and Caregiving",
    "l2": "Home",
    "region": "Bangkok"
+  },
+  {
+   "name": "Final Test",
+   "l1": "Clothing and Fashion",
+   "l2": "Packaged Foods",
+   "region": "Bangkok"
   }
  ],
  "regions": [
