@@ -1,5 +1,12 @@
 {
- "venues": [],
+ "venues": [
+  {
+   "name": "Test",
+   "l1": "Childcare and Caregiving",
+   "l2": "Home",
+   "region": "Bangkok"
+  }
+ ],
  "regions": [
   "Bangkok",
   "Ubon",
