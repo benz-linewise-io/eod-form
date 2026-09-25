@@ -1,0 +1,201 @@
+{
+ "venues": [
+  {
+   "name": "MissMaMon",
+   "l1": "food and beverage",
+   "l2": "bakery kitchen"
+  },
+  {
+   "name": "สารินบ้านจั่น",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company"
+  }
+ ],
+ "cameras": [
+  {
+   "id": "RB-01",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "RB-02",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "RB-05",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "RB-06",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "RB-07",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "RB-08",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "RB-09",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "RB-10",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-01",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-02",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-03",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-04",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-05",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-06",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-08",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-09",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-10",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-11",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-12",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-13",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-14",
+   "team": "TH-UBN"
+  },
+  {
+   "id": "THA-15",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-16",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-20",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-21",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-22",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-24",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-25",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-26",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-27",
+   "team": "TH-CHUA"
+  },
+  {
+   "id": "THA-28",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-29",
+   "team": "TH-UBON"
+  },
+  {
+   "id": "THA-30",
+   "team": "TH-UBON"
+  },
+  {
+   "id": "THA-31",
+   "team": "TH-UBON"
+  },
+  {
+   "id": "THA-32",
+   "team": "TH-UBON"
+  },
+  {
+   "id": "THA-33",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-34",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-35",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-36",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-37",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-38",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-39",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-40",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-41",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-42",
+   "team": "TH-BKK"
+  },
+  {
+   "id": "THA-43",
+   "team": "TH-BKK"
+  }
+ ],
+ "exportedAt": "2026-09-25T14:56"
+}
