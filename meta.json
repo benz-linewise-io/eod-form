@@ -11,6 +11,12 @@
    "l1": "Clothing and Fashion",
    "l2": "Packaged Foods",
    "region": "Bangkok"
+  },
+  {
+   "name": "Test Final 2",
+   "l1": "Construction and Hardware",
+   "l2": "Grocery Store",
+   "region": "Bangkok"
   }
  ],
  "regions": [
