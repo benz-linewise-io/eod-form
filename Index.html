@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EOD Report</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root{--g:#06c755;--bg:#f5f6f7;--card:#fff;--tx:#1c1c1e;--mut:#6b7280;--bd:#dfe2e6;--err:#d93025}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.4 -apple-system,system-ui,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--tx)}
+  main{max-width:560px;margin:0 auto;padding:12px 16px 96px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 12px}
+  h1{font-size:18px;margin:0}
+  .lang{border:1px solid var(--bd);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--tx)}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+  label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+  label:first-child{margin-top:0}
+  input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--bd);border-radius:8px;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+  .seg button{border:0;padding:12px;font:inherit;font-weight:600;background:#fff;color:var(--mut)}
+  .seg button.on{background:var(--g);color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;max-height:300px;overflow:auto;padding-top:6px}
+  .chip{border:1px solid var(--bd);border-radius:999px;padding:7px 11px;background:#fff;font:inherit;font-size:14px}
+  .chip.on{background:var(--g);border-color:var(--g);color:#fff}
+  .team{flex-basis:100%;font-size:12px;font-weight:600;color:var(--mut);margin:8px 0 0}
+  .chip.dmg{background:#fde8e7;border-color:var(--err);color:#a3261d}
+  .chip.trn{background:#fff3d6;border-color:#c98a00;color:#7a5200}
+  .chip.dim{opacity:.35}
+  .ask{border:1px solid var(--g);background:#f0fff5}
+  .ask .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .ask button{padding:12px;border-radius:10px;border:1px solid var(--bd);background:#fff;font:inherit;font-weight:600}
+  .ask button.pri{background:var(--g);border-color:var(--g);color:#fff}
+  .team:first-child{margin-top:0}
+  .hint{font-size:12px;color:var(--mut);margin-top:4px}
+  .pk{position:relative}
+  .pick{position:absolute;left:0;right:0;z-index:5;background:#fff;border:1px solid var(--bd);border-radius:8px;margin-top:2px;max-height:220px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .pick button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #f0f0f0;background:#fff;padding:10px;font:inherit;font-size:14px}
+  .pick .none{padding:10px;font-size:13px;color:var(--mut)}
+  .note{font-size:12px;color:var(--tx);background:#f7f7f7;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-top:10px}
+  .plans button{display:block;width:100%;text-align:left;margin-top:6px;padding:10px;border:1px dashed var(--g);border-radius:8px;background:#f0fff5;font:inherit}
+  .err{color:var(--err);white-space:pre-line;font-size:14px;margin:8px 0}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--bd);padding:10px 16px}
+  .bar button{width:100%;max-width:560px;display:block;margin:0 auto;padding:14px;border:0;border-radius:10px;background:var(--g);color:#fff;font:inherit;font-weight:700}
+  .bar button:disabled{opacity:.5}
+  pre{white-space:pre-wrap;background:#f7f7f7;border-radius:8px;padding:10px;font:13px/1.4 ui-monospace,monospace}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>EOD Report <span id="who" class="hint"></span></h1>
+    <button type="button" id="langBtn" class="lang">EN</button>
+  </header>
+  <div id="loading" class="card" data-i18n="loading"></div>
+
+  <form id="f" class="hide" autocomplete="off">
+    <div class="card">
+      <div class="seg" id="typeSeg">
+        <button type="button" data-v="Plan" class="on" data-i18n="plan"></button>
+        <button type="button" data-v="Actual" data-i18n="actual"></button>
+      </div>
+      <label for="date" data-i18n="date"></label>
+      <input type="date" id="date" required>
+      <div id="plans" class="plans hide"></div>
+    </div>
+
+    <div class="card">
+      <label for="region" data-i18n="region"></label>
+      <select id="region"></select>
+      <label for="venue" data-i18n="venue"></label>
+      <select id="venue" required></select>
+      <input id="venueNew" class="hide" data-i18n-ph="venueNewPh" style="margin-top:6px">
+      <div class="row">
+        <div class="pk"><label for="l1">L1</label><input id="l1" autocomplete="off" data-i18n-ph="searchPh"><div class="pick hide" id="l1List"></div></div>
+        <div class="pk"><label for="l2">L2</label><input id="l2" autocomplete="off" data-i18n-ph="searchPh"><div class="pick hide" id="l2List"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div><label for="hrs" id="hrsLbl"></label><input id="hrs" type="text" autocomplete="off" placeholder="3:30" required><div class="hint" id="hrsConv"></div></div>
+        <div><label for="hard" data-i18n="hard"></label><input id="hard" type="text" autocomplete="off" data-i18n-ph="hardPh"><div class="hint" id="hardConv"></div></div>
+      </div>
+      <div class="note" data-i18n="hoursHint"></div>
+      <div id="transWrap" class="hide">
+        <label for="trans" data-i18n="trans"></label>
+        <input id="trans" type="text" autocomplete="off" placeholder="0">
+        <div class="hint" id="transConv"></div>
+        <div class="hint" data-i18n="transHint"></div>
+      </div>
+      <label for="ops" data-i18n="ops"></label>
+      <input id="ops" type="number" inputmode="numeric" min="1" step="1" required>
+    </div>
+
+    <div class="card">
+      <label><span data-i18n="cameras"></span> <b id="camCount">0</b></label>
+      <input id="camFilter" data-i18n-ph="camFilterPh">
+      <div id="chips" class="chips"></div>
+    </div>
+
+    <div class="card hide" id="probCard">
+      <label data-i18n="probTitle"></label>
+      <div class="hint" data-i18n="probHint"></div>
+      <div id="probChips" class="chips"></div>
+      <div class="hint" id="probSummary"></div>
+    </div>
+
+    <div class="card">
+      <label for="issues" data-i18n="issues"></label>
+      <textarea id="issues" data-i18n-ph="issuesPh"></textarea>
+    </div>
+    <div id="ask" class="card ask hide">
+      <div id="askText"></div>
+      <div class="btns">
+        <button type="button" id="askReplace" class="pri" data-i18n="askReplace"></button>
+        <button type="button" id="askSecond" data-i18n="askSecond"></button>
+      </div>
+    </div>
+    <div id="err" class="err"></div>
+  </form>
+
+  <div id="done" class="card hide">
+    <b data-i18n="doneTitle"></b>
+    <p id="doneNote" class="hint"></p>
+    <pre id="doneMsg"></pre>
+    <button type="button" id="copyBtn" class="chip" data-i18n="copy"></button>
+  </div>
+</main>
+<div class="bar" id="bar"><button id="submit" type="button" disabled data-i18n="submit"></button></div>
+
+<script>
+// ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
+const LIFF_ID = '2011743278-31NUxIDC';
+const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
+const FORM_ENTRY = 'entry.287169977';
+// =======================================================================================
+
+const $ = id => document.getElementById(id);
+const S = { type: 'Plan', cams: new Set(), bad: {}, meta: null, profile: null, idToken: null, lang: 'th', posted: null, replaces: null };
+const PLANS_KEY = 'eod_plans_v1', DRAFT_KEY = 'eod_draft_v1', VENUES_KEY = 'eod_venues_v2', LANG_KEY = 'eod_lang_v1', TEAM_KEY = 'eod_team_v1', REGION_KEY = 'eod_region_v1', SENT_KEY = 'eod_sent_v1';
+
+// ---------- language (the LINE message itself stays in English, the team's format) ----------
+const T = {
+  th: {
+    loading: 'กำลังโหลด…', noTeam: 'ไม่ระบุทีม',
+    hoursHint: 'วิธีเขียนชั่วโมง — 3 ชั่วโมง 30 นาที เขียนได้ทั้ง 3:30 หรือ 3.5 ระบบบันทึกเป็นทศนิยมให้ (3.5)',
+    trans: 'ชั่วโมงเดินทาง (Transition)', transHint: 'ไม่บังคับ — เวลาที่ใช้ย้ายระหว่างสถานที่ ไม่ได้ถ่าย',
+    eHrsFormat: 'เขียนชั่วโมงเป็น 3:30 หรือ 3.5', searchPh: 'พิมพ์เพื่อค้นหา', noMatch: 'ไม่พบ ลองคำอื่น',
+    eL1: 'เลือก L1 จากรายการ', eL2: 'เลือก L2 จากรายการ',
+    probTitle: 'กล้องที่ไม่ได้ถ่ายวันนี้ (ไม่บังคับ)', probHint: 'แตะ 1 ครั้ง = เสีย, 2 ครั้ง = กำลังขนส่ง, 3 ครั้ง = ยกเลิก',
+    probSum: (d, tr) => `เสีย ${d} ตัว · กำลังขนส่ง ${tr} ตัว`,
+    askText: (v, tp) => `วันนี้คุณส่ง${tp === 'Plan' ? 'แผน' : 'รายงานจริง'}ของ "${v}" ไปแล้ว อันนี้คือการแก้ไข (แทนที่อันเดิม) หรือเป็นอีกสถานที่หนึ่ง?`,
+    askReplace: 'แทนที่อันเดิม', askSecond: 'อีกสถานที่', otherVenues: 'ยังไม่ระบุภูมิภาค', eRegion: 'เลือกภูมิภาค', plan: 'แผน', actual: 'จริง', date: 'วันที่',
+    copyFromPlan: 'คัดลอกจากแผนของคุณ:', planBtn: (p) => `${p.venue} · ${p.totalHours} ชม. · ${p.operators} คน · ${p.cameras.length} กล้อง`,
+    venue: 'สถานที่', select: '— เลือก —', newVenue: '+ สถานที่ใหม่', venueNewPh: 'พิมพ์ชื่อสถานที่ใหม่',
+    region: 'ภูมิภาค', hrsPlan: 'ชั่วโมงแผน', hrsActual: 'ชั่วโมงจริง', hard: 'ชั่วโมง Hard', hardPh: 'ว่าง = เท่าชั่วโมงรวม',
+    ops: 'จำนวน Operator', cameras: 'กล้อง', camFilterPh: 'ค้นหา เช่น 29 หรือ RB',
+    issues: 'ปัญหา', issuesPh: 'ถ้าไม่มี เว้นว่างได้', submit: 'ส่งรายงาน', sending: 'กำลังส่ง…',
+    doneTitle: 'ส่งแล้ว ✅', posted: 'บันทึกแล้ว และส่งเข้ากลุ่มแล้ว',
+    notPosted: 'บันทึกแล้ว แต่ยังไม่ได้ส่งเข้ากลุ่ม — กดคัดลอกแล้ววางในกลุ่ม',
+    copy: 'คัดลอกข้อความ', copied: 'คัดลอกแล้ว ✓',
+    eDate: 'ใส่วันที่', eVenue: 'เลือกสถานที่', eHrs: 'ใส่ชั่วโมง', eHard: 'ชั่วโมง Hard ต้องไม่เกินชั่วโมงรวม',
+    eOps: 'ใส่จำนวน Operator', eCams: 'เลือกกล้องอย่างน้อย 1 ตัว', e24: 'ชั่วโมงเกิน 24 ชม./กล้อง – ตรวจตัวเลข',
+    eSend: 'ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่', reloaded: 'โหลดใหม่แล้ว กดส่งอีกครั้ง', loadFail: 'โหลดไม่สำเร็จ: ',
+    switchTo: 'EN',
+  },
+  en: {
+    loading: 'Loading…', noTeam: 'No team',
+    hoursHint: 'Writing the hours — 3 hours 30 minutes can be written 3:30 or 3.5. Either is fine; it is saved as a decimal (3.5).',
+    trans: 'Transition time (hr)', transHint: 'Optional — time spent moving between venues, not filming.',
+    eHrsFormat: 'Write hours as 3:30 or 3.5', searchPh: 'Type to search', noMatch: 'No match. Try another word.',
+    eL1: 'Pick L1 from the list', eL2: 'Pick L2 from the list',
+    probTitle: 'Cameras not filming today (optional)', probHint: 'Tap once = damaged, twice = in transit, three times = clear.',
+    probSum: (d, tr) => `${d} damaged · ${tr} in transit`,
+    askText: (v, tp) => `You already sent ${tp === 'Plan' ? 'a Plan' : 'an Actual'} today for "${v}". Is this a correction that replaces it, or a second site?`,
+    askReplace: 'Replace it', askSecond: 'Second site', otherVenues: 'No region yet', eRegion: 'Choose a region', plan: 'Plan', actual: 'Actual', date: 'Date',
+    copyFromPlan: 'Copy from your plan:', planBtn: (p) => `${p.venue} · ${p.totalHours} hr · ${p.operators} ops · ${p.cameras.length} cams`,
+    venue: 'Venue', select: '— Select —', newVenue: '+ New venue', venueNewPh: 'Type the new venue name',
+    region: 'Region', hrsPlan: 'Planned hr', hrsActual: 'Actual hr', hard: 'Hard hr', hardPh: 'Blank = same as total',
+    ops: 'Operators', cameras: 'Cameras', camFilterPh: 'Search, e.g. 29 or RB',
+    issues: 'Issues', issuesPh: 'Leave blank if none', submit: 'Submit report', sending: 'Sending…',
+    doneTitle: 'Sent ✅', posted: 'Saved and posted to the group.',
+    notPosted: 'Saved, but not posted to the group. Copy the message and paste it in the group.',
+    copy: 'Copy message', copied: 'Copied ✓',
+    eDate: 'Enter the date', eVenue: 'Choose a venue', eHrs: 'Enter the hours', eHard: "Hard hr can't be more than total hr",
+    eOps: 'Enter the number of operators', eCams: 'Pick at least 1 camera', e24: 'More than 24 hr per camera – check the number',
+    eSend: 'Not sent – check your connection and try again.', reloaded: 'Reloaded – tap Submit again.', loadFail: 'Could not load: ',
+    switchTo: 'ไทย',
+  },
+};
+const t = k => T[S.lang][k];
+
+function applyLang() {
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  $('langBtn').textContent = t('switchTo');
+  $('hrsLbl').textContent = S.type === 'Plan' ? t('hrsPlan') : t('hrsActual');
+  if (S.posted !== null) $('doneNote').textContent = S.posted ? t('posted') : t('notPosted');
+  if (!S.meta) return;
+  const v = $('venue').value, r = $('region').value, l1 = $('l1').value, l2 = $('l2').value;
+  renderProblems(); setRegion(r); renderVenues(); if ([...$('venue').options].some(x => x.value === v)) $('venue').value = v; setL(l1, l2); loadPlans();
+}
+$('langBtn').onclick = () => { S.lang = S.lang === 'th' ? 'en' : 'th'; lsSet(LANG_KEY, S.lang); applyLang(); };
+
+// ---------- storage (plans are kept on the runner's phone for "Copy from your plan") ----------
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+function savePlanLocally(r) {
+  const cutoff = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+  const plans = lsGet(PLANS_KEY, []).filter(p => p.date >= cutoff &&
+    !(p.userId === r.userId && p.date === r.date && p.venue === r.venue)); // resubmit replaces
+  plans.push(r); lsSet(PLANS_KEY, plans);
+}
+function myPlans(date) {
+  return lsGet(PLANS_KEY, []).filter(p => p.userId === S.profile.userId && p.date === date);
+}
+
+// ---------- hours: '3:30' or '3.5' -> 3.5 (same rule as parseHours() in Code.gs) ----------
+function parseHours(v) {
+  const s = String(v == null ? '' : v).trim().replace(',', '.');
+  if (s === '') return NaN;
+  let m = s.match(/^(\d+):(\d{1,2})$/);
+  if (m && +m[2] < 60) return Math.round((+m[1] + +m[2] / 60) * 100) / 100;
+  m = s.match(/^\d+(\.\d+)?$/);
+  return m ? Math.round(parseFloat(s) * 100) / 100 : NaN;
+}
+function showConv(inp, out) {
+  const raw = $(inp).value.trim(), n = parseHours(raw);
+  $(out).textContent = !raw ? '' : isNaN(n) ? t('eHrsFormat') : (String(n) === raw ? '' : '= ' + n + ' hr');
+}
+['hrs', 'hard', 'trans'].forEach(id => $(id).addEventListener('input', () => showConv(id, id + 'Conv')));
+
+// ---------- message (keep in sync with formatMessage() in Code.gs) ----------
+function fmtDateLong(ymd) {
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p = String(ymd).split('-');
+  return parseInt(p[2], 10) + ' ' + M[parseInt(p[1], 10) - 1] + ' ' + p[0];
+}
+function fmtHr(n) { return (Math.round(n * 100) / 100) + ' hr'; }
+function formatMessage(r, plan) {
+  const isPlan = r.type === 'Plan', word = isPlan ? 'Planned' : 'Actual';
+  const lines = ['[' + (isPlan ? 'PLAN' : 'ACTUAL') + '] ' + fmtDateLong(r.date), '',
+    'Venue: ' + r.venue].concat(r.region ? ['Region: ' + r.region] : []).concat([
+    'L1: ' + (r.l1 || '-'), 'L2: ' + (r.l2 || '-'), '',
+    'Total ' + word + ' Hour: ' + fmtHr(r.totalHours) + ' (Hard ' + fmtHr(r.hardHours) + ')',
+    'Total ' + word + ' Operator: ' + r.operators, '',
+    'Camera: ' + r.cameras.length + ' devices (' + r.cameras.join(', ') + ')']);
+  if (!isPlan && plan) {
+    const pct = plan.totalHours ? Math.round((r.totalHours - plan.totalHours) / plan.totalHours * 100) : null;
+    lines.push('vs Plan: ' + fmtHr(plan.totalHours) + ' → ' + fmtHr(r.totalHours) +
+      (pct === null ? '' : ' (' + (pct > 0 ? '+' : '') + pct + '%)') + ', ops ' + plan.operators + ' → ' + r.operators);
+  }
+  if (r.transitionHours > 0) lines.push('Transition: ' + fmtHr(r.transitionHours));
+  if (r.damaged && r.damaged.length) lines.push('Damaged: ' + r.damaged.join(', '));
+  if (r.inTransit && r.inTransit.length) lines.push('In transit: ' + r.inTransit.join(', '));
+  if (r.issues) lines.push('Issues: ' + r.issues);
+  lines.push('', 'Ref: ' + r.id);
+  return lines.join('\n');
+}
+function localPlanFor(r) { // same rule as findPlan() in Code.gs
+  const plans = myPlans(r.date), exact = plans.filter(p => p.venue === r.venue);
+  return exact.length ? exact[exact.length - 1] : (plans.length === 1 ? plans[0] : null);
+}
+
+// Venues this runner typed before (shown right away, even before the Sheet publishes them)
+function saveLocalVenue(v) {
+  if (!v.name || S.meta.venues.some(x => x.name === v.name)) return;
+  const list = lsGet(VENUES_KEY, []).filter(x => x.name !== v.name);
+  list.push({ name: v.name, l1: v.l1, l2: v.l2, region: v.region }); lsSet(VENUES_KEY, list.slice(-50));
+}
+function allVenues() {
+  const known = S.meta.venues.map(x => x.name);
+  return S.meta.venues.concat(lsGet(VENUES_KEY, []).filter(x => known.indexOf(x.name) < 0));
+}
+const uniq = a => a.filter((x, i) => x && a.indexOf(x) === i);
+
+// ---------- UI ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+function opts(list, sel) {
+  if (sel && list.indexOf(sel) < 0) list = list.concat([sel]);
+  return `<option value="">${t('select')}</option>` + list.map(o => `<option>${esc(o)}</option>`).join('');
+}
+// Venues are filtered by the chosen region; venues with no region yet are listed underneath
+function renderVenues() {
+  const keep = $('venue').value, reg = $('region').value;
+  const all = allVenues();
+  const o = v => `<option>${esc(v.name)}</option>`;
+  let html = `<option value="">${t('select')}</option>`;
+  if (!reg) html += all.map(o).join('');
+  else {
+    const mine = all.filter(v => v.region === reg), none = all.filter(v => !v.region);
+    html += mine.map(o).join('');
+    if (none.length) html += `<optgroup label="${esc(t('otherVenues'))}">${none.map(o).join('')}</optgroup>`;
+  }
+  html += `<option value="__new">${t('newVenue')}</option>`;
+  $('venue').innerHTML = html;
+  if (keep && [...$('venue').options].some(x => x.value === keep)) $('venue').value = keep;
+}
+function setRegion(v) { $('region').innerHTML = opts((S.meta.regions || []).slice(), v); $('region').value = v || ''; }
+// L1 and L2: independent lists, each with a search box (type a few letters, tap the match)
+function setL(l1, l2) { $('l1').value = l1 || ''; $('l2').value = l2 || ''; }
+function listFor(id) { return (id === 'l1' ? S.meta.l1s : S.meta.l2s) || []; }
+function canonL(id, v) { const k = String(v || '').trim().toLowerCase(); return k ? listFor(id).find(x => x.toLowerCase() === k) : ''; }
+function showPick(id) {
+  const box = $(id + 'List'), q = $(id).value.trim().toLowerCase();
+  const all = listFor(id), exact = all.some(x => x.toLowerCase() === q);
+  const hits = (q && !exact ? all.filter(x => x.toLowerCase().includes(q)) : all).slice(0, 50);
+  box.innerHTML = hits.length ? hits.map(x => `<button type="button" data-v="${esc(x)}">${esc(x)}</button>`).join('') : `<div class="none">${t('noMatch')}</div>`;
+  box.classList.remove('hide');
+}
+['l1', 'l2'].forEach(id => {
+  $(id).addEventListener('focus', () => showPick(id));
+  $(id).addEventListener('input', () => showPick(id));
+  $(id).addEventListener('blur', () => setTimeout(() => { $(id + 'List').classList.add('hide'); const c = canonL(id, $(id).value); if (c) $(id).value = c; }, 200));
+  $(id + 'List').addEventListener('mousedown', e => e.preventDefault()); // keep focus so the tap registers
+  $(id + 'List').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $(id).value = b.dataset.v; $(id + 'List').classList.add('hide'); $(id).blur(); });
+});
+// Cameras are grouped by the team that holds them (from the Asset Tracker); the runner's usual team comes first
+function renderChips() {
+  const q = $('camFilter').value.trim().toUpperCase();
+  const list = S.meta.cameras.filter(c => !q || c.id.includes(q) || (c.team || '').toUpperCase().includes(q) || S.cams.has(c.id));
+  const mine = lsGet(TEAM_KEY, '');
+  const teams = uniq(list.map(c => c.team || '—')).sort((a, b) => (b === mine) - (a === mine) || a.localeCompare(b));
+  $('chips').innerHTML = teams.map(tm =>
+    `<div class="team">${esc(tm === '—' ? t('noTeam') : tm)}</div>` +
+    list.filter(c => (c.team || '—') === tm)
+      .map(c => `<button type="button" class="chip ${S.cams.has(c.id) ? 'on' : ''}" data-c="${c.id}">${c.id}</button>`).join('')
+  ).join('');
+  $('camCount').textContent = S.cams.size ? `(${S.cams.size}): ${[...S.cams].sort().join(', ')}` : '0';
+}
+// Damaged / in transit: tap cycles  off -> damaged -> in transit -> off. A camera marked here is not filming.
+function renderProblems() {
+  const mine = lsGet(TEAM_KEY, '');
+  const list = S.meta.cameras;
+  const teams = uniq(list.map(c => c.team || '—')).sort((a, b) => (b === mine) - (a === mine) || a.localeCompare(b));
+  $('probChips').innerHTML = teams.map(tm => `<div class="team">${esc(tm === '—' ? t('noTeam') : tm)}</div>` +
+    list.filter(c => (c.team || '—') === tm).map(c => {
+      const st = S.bad[c.id], cls = st === 'D' ? 'dmg' : st === 'T' ? 'trn' : (S.cams.has(c.id) ? 'dim' : '');
+      return `<button type="button" class="chip ${cls}" data-c="${c.id}">${c.id}</button>`;
+    }).join('')).join('');
+  const v = Object.values(S.bad);
+  $('probSummary').textContent = v.length ? t('probSum')(v.filter(x => x === 'D').length, v.filter(x => x === 'T').length) : '';
+}
+function sentToday(r) { // an earlier report from this phone, same runner/date/type, other venue
+  const mine = lsGet(SENT_KEY, []).filter(x => x.userId === S.profile.userId && x.date === r.date && x.type === r.type);
+  if (mine.some(x => x.venue === r.venue)) return null; // same venue again: clearly a fix, the Sheet replaces it
+  return mine.filter(x => x.venue !== r.venue).pop() || null;
+}
+function logSent(r) {
+  const cutoff = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+  const list = lsGet(SENT_KEY, []).filter(x => x.date >= cutoff && !(r.replaces && x.id === r.replaces));
+  list.push({ id: r.id, userId: S.profile.userId, date: r.date, type: r.type, venue: r.venue }); lsSet(SENT_KEY, list.slice(-60));
+}
+function rememberTeam(cams) { // most-used team among the cameras just submitted
+  const n = {};
+  cams.forEach(id => { const c = S.meta.cameras.find(x => x.id === id); if (c && c.team) n[c.team] = (n[c.team] || 0) + 1; });
+  const best = Object.keys(n).sort((a, b) => n[b] - n[a])[0];
+  if (best) lsSet(TEAM_KEY, best);
+}
+
+function setType(tp) {
+  S.type = tp;
+  document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
+  $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
+  $('transWrap').classList.toggle('hide', tp !== 'Actual');
+  $('probCard').classList.toggle('hide', tp !== 'Actual');
+  loadPlans();
+}
+
+function loadPlans() {
+  const box = $('plans');
+  box.classList.add('hide'); box.innerHTML = '';
+  if (S.type !== 'Actual' || !$('date').value) return;
+  const plans = myPlans($('date').value);
+  if (!plans.length) return;
+  box.innerHTML = `<div class="hint">${t('copyFromPlan')}</div>` +
+    plans.map((p, i) => `<button type="button" data-i="${i}">${esc(t('planBtn')(p))}</button>`).join('');
+  box.classList.remove('hide');
+  box.onclick = e => { const b = e.target.closest('button'); if (b) fillFromPlan(plans[+b.dataset.i]); };
+}
+function fillForm(p) {
+  setRegion(p.region || ''); renderVenues();
+  const known = [...$('venue').options].some(x => x.value === p.venue);
+  $('venue').value = p.venue ? (known ? p.venue : '__new') : '';
+  $('venueNew').classList.toggle('hide', !p.venue || known); if (p.venue && !known) $('venueNew').value = p.venue;
+  setL(p.l1 || '', p.l2 || '');
+  if (p.operators) $('ops').value = p.operators;
+  S.cams = new Set(p.cameras || []); S.bad = {};
+  (p.damaged || []).forEach(c => S.bad[c] = 'D'); (p.inTransit || []).forEach(c => S.bad[c] = 'T');
+  renderChips(); renderProblems();
+}
+function fillFromPlan(p) { fillForm(p); $('hrs').focus(); }
+
+function collect() {
+  const venue = $('venue').value === '__new' ? $('venueNew').value.trim() : $('venue').value;
+  const hrs = parseHours($('hrs').value), hard = $('hard').value.trim() === '' ? hrs : parseHours($('hard').value);
+  const trans = S.type === 'Actual' && $('trans').value.trim() !== '' ? parseHours($('trans').value) : 0;
+  return { type: S.type, date: $('date').value, venue, region: $('region').value, l1: canonL('l1', $('l1').value) || $('l1').value.trim(), l2: canonL('l2', $('l2').value) || $('l2').value.trim(),
+    totalHours: hrs, hardHours: hard, transitionHours: trans, operators: parseInt($('ops').value, 10), cameras: [...S.cams].sort(),
+    issues: $('issues').value.trim(),
+    damaged: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'D').sort() : [],
+    inTransit: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'T').sort() : [] };
+}
+
+function newId(date) {
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', b = new Uint8Array(6);
+  crypto.getRandomValues(b);
+  return 'EOD-' + date.replace(/-/g, '') + '-' + [...b].map(x => a[x % a.length]).join('');
+}
+
+// LINE ID tokens expire. If the form was left open too long, reload to get a fresh one (draft is kept).
+function tokenFresh() {
+  const d = liff.getDecodedIDToken && liff.getDecodedIDToken();
+  return !!(d && d.exp && d.exp * 1000 > Date.now() + 60 * 1000);
+}
+function saveDraftAndReload() {
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(Object.assign(collect(), { hrsRaw: $('hrs').value, hardRaw: $('hard').value, transRaw: $('trans').value }))); } catch (e) { }
+  if (!liff.isInClient()) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
+  location.reload();
+}
+function restoreDraft() {
+  let d = null;
+  try { d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); sessionStorage.removeItem(DRAFT_KEY); } catch (e) { }
+  if (!d) return;
+  setType(d.type); $('date').value = d.date; fillForm(d);
+  $('hrs').value = d.hrsRaw || ''; $('hard').value = d.hardRaw || ''; $('trans').value = d.transRaw || ''; $('issues').value = d.issues || '';
+  $('err').textContent = t('reloaded');
+}
+
+async function submit() {
+  const r = collect(), errs = [];
+  if (!r.date) errs.push(t('eDate'));
+  if (!r.region && (S.meta.regions || []).length) errs.push(t('eRegion'));
+  if (!r.venue) errs.push(t('eVenue'));
+  if (r.l1 && S.meta.l1s.length && !canonL('l1', r.l1)) errs.push(t('eL1'));
+  if (r.l2 && S.meta.l2s.length && !canonL('l2', r.l2)) errs.push(t('eL2'));
+  if ($('hrs').value.trim() && isNaN(r.totalHours)) errs.push(t('eHrsFormat'));
+  else if (!(r.totalHours > 0)) errs.push(t('eHrs'));
+  if (($('hard').value.trim() && isNaN(r.hardHours)) || isNaN(r.transitionHours)) errs.push(t('eHrsFormat'));
+  if (r.hardHours > r.totalHours) errs.push(t('eHard'));
+  if (!(r.operators >= 1)) errs.push(t('eOps'));
+  if (!r.cameras.length) errs.push(t('eCams'));
+  if (r.cameras.length && r.totalHours > 24 * r.cameras.length) errs.push(t('e24'));
+  $('err').textContent = errs.filter((x, i) => errs.indexOf(x) === i).join('\n');
+  if (errs.length) return;
+
+  if (!tokenFresh()) { saveDraftAndReload(); return; }
+  S.idToken = liff.getIDToken();
+
+  // same runner already sent this type today for another venue: correction or second site?
+  const earlier = sentToday(r);
+  if (earlier && S.replaces === null) {
+    $('askText').textContent = t('askText')(earlier.venue, r.type);
+    $('ask').classList.remove('hide');
+    $('askReplace').onclick = () => { S.replaces = earlier.id; $('ask').classList.add('hide'); submit(); };
+    $('askSecond').onclick = () => { S.replaces = ''; $('ask').classList.add('hide'); submit(); };
+    $('ask').scrollIntoView && $('ask').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  r.replaces = S.replaces || '';
+
+  const btn = $('submit'); btn.disabled = true; btn.textContent = t('sending');
+  r.id = newId(r.date);
+  const message = formatMessage(r, r.type === 'Actual' ? localPlanFor(r) : null);
+  try {
+    // The form answers with an opaque response (no-cors). A network error still throws.
+    const body = new URLSearchParams();
+    body.append(FORM_ENTRY, JSON.stringify({ idToken: S.idToken, profile: S.profile, report: r }));
+    await fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body });
+    if (r.type === 'Plan') savePlanLocally(Object.assign({ userId: S.profile.userId }, r));
+    saveLocalVenue({ name: r.venue, l1: r.l1, l2: r.l2, region: r.region });
+    logSent(r);
+    rememberTeam(r.cameras);
+    if (r.region) lsSet(REGION_KEY, r.region);
+
+    let posted = false;
+    const ctx = liff.getContext && liff.getContext();
+    if (liff.isInClient() && ctx && ['group', 'room', 'utou'].includes(ctx.type)) {
+      try { await liff.sendMessages([{ type: 'text', text: message.slice(0, 5000) }]); posted = true; } catch (e) { }
+    }
+    S.posted = posted;
+    $('f').classList.add('hide'); $('bar').classList.add('hide'); $('done').classList.remove('hide');
+    $('doneMsg').textContent = message;
+    $('doneNote').textContent = posted ? t('posted') : t('notPosted');
+    if (posted) setTimeout(() => liff.closeWindow(), 1500);
+  } catch (e) {
+    $('err').textContent = t('eSend');
+    btn.disabled = false; btn.textContent = t('submit');
+    S.replaces = null;
+  }
+}
+
+async function init() {
+  S.lang = lsGet(LANG_KEY, null) || 'th';
+  applyLang();
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+    if (!lsGet(LANG_KEY, null) && liff.getLanguage && !/^th/i.test(liff.getLanguage() || 'th')) { S.lang = 'en'; applyLang(); }
+    S.profile = await liff.getProfile();
+    S.idToken = liff.getIDToken();
+    $('who').textContent = '· ' + S.profile.displayName;
+    const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('meta.json not found');
+    S.meta = await res.json();
+    S.meta.regions = S.meta.regions || [];
+    S.meta.l1s = S.meta.l1s || uniq((S.meta.l1l2 || []).map(x => x.l1));
+    S.meta.l2s = S.meta.l2s || uniq((S.meta.l1l2 || []).map(x => x.l2));
+    $('date').value = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date());
+    renderProblems();
+    const lastRegion = lsGet(REGION_KEY, '');
+    setRegion(S.meta.regions.indexOf(lastRegion) >= 0 ? lastRegion : ''); renderVenues(); renderChips(); setL('', '');
+    const q = new URLSearchParams(location.search).get('type');
+    if (q === 'Actual' || q === 'Plan') setType(q);
+    restoreDraft();
+    $('loading').classList.add('hide'); $('f').classList.remove('hide'); $('submit').disabled = false;
+  } catch (e) {
+    $('loading').textContent = t('loadFail') + e.message;
+  }
+}
+
+$('typeSeg').onclick = e => { const b = e.target.closest('button'); if (b) setType(b.dataset.v); };
+$('date').onchange = loadPlans;
+$('venue').onchange = () => {
+  const v = $('venue').value, isNew = v === '__new';
+  $('venueNew').classList.toggle('hide', !isNew);
+  const m = allVenues().find(x => x.name === v);
+  if (m) { setL(m.l1, m.l2); if (m.region && !$('region').value) { setRegion(m.region); renderVenues(); $('venue').value = v; } }
+  else if (isNew) setL('', '');
+};
+$('region').onchange = () => { renderVenues(); if (!$('venue').value) { $('venueNew').classList.add('hide'); setL('', ''); } };
+$('camFilter').oninput = renderChips;
+$('chips').onclick = e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const c = b.dataset.c; S.cams.has(c) ? S.cams.delete(c) : (S.cams.add(c), delete S.bad[c]); renderChips(); renderProblems();
+};
+$('probChips').onclick = e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const c = b.dataset.c, next = { undefined: 'D', D: 'T', T: undefined }[S.bad[c]];
+  if (next) { S.bad[c] = next; S.cams.delete(c); } else delete S.bad[c];
+  renderChips(); renderProblems();
+};
+$('submit').onclick = submit;
+$('copyBtn').onclick = () => navigator.clipboard.writeText($('doneMsg').textContent).then(() => $('copyBtn').textContent = t('copied'));
+init();
+</script>
+</body>
+</html>
