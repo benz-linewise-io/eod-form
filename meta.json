@@ -5,6 +5,24 @@
    "l1": "Retail and Consumer Goods",
    "l2": "Pharmacy",
    "region": "Ubon"
+  },
+  {
+   "name": "U2 Precast Solution",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Ubon"
+  },
+  {
+   "name": "puinic sitecode (ประชาชื่น)",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Bangkok"
+  },
+  {
+   "name": "Bangkhae Market",
+   "l1": "Clothing and Fashion",
+   "l2": "Alterations Studio",
+   "region": "Bangkok"
   }
  ],
  "regions": [
