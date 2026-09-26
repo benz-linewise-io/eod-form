@@ -1,5 +1,12 @@
 {
- "venues": [],
+ "venues": [
+  {
+   "name": "Muangthong Basaj",
+   "l1": "Retail and Consumer Goods",
+   "l2": "Pharmacy",
+   "region": "Ubon"
+  }
+ ],
  "regions": [
   "Bangkok",
   "Ubon",
