@@ -23,6 +23,18 @@
    "l1": "Clothing and Fashion",
    "l2": "Alterations Studio",
    "region": "Bangkok"
+  },
+  {
+   "name": "CNX Haircutz",
+   "l1": "Beauty and Personal Care",
+   "l2": "Personal Care",
+   "region": "Chiang Mai"
+  },
+  {
+   "name": "Bighead Sansai",
+   "l1": "Beauty and Personal Care",
+   "l2": "Personal Care",
+   "region": "Chiang Mai"
   }
  ],
  "regions": [
