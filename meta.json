@@ -41,6 +41,12 @@
    "l1": "Food and Beverage",
    "l2": "Baking Area",
    "region": "Bangkok"
+  },
+  {
+   "name": "Bangkhae consturction (clinic)",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Bangkok"
   }
  ],
  "regions": [
