@@ -77,6 +77,12 @@
    "l1": "Repair Services",
    "l2": "Auto Repair",
    "region": "Ubon"
+  },
+  {
+   "name": "Suntorx",
+   "l1": "Industrial Manufacturing",
+   "l2": "Hardware Manufacturing",
+   "region": "Bangkok"
   }
  ],
  "regions": [
