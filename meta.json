@@ -83,6 +83,12 @@
    "l1": "Industrial Manufacturing",
    "l2": "Hardware Manufacturing",
    "region": "Bangkok"
+  },
+  {
+   "name": "Phone Station",
+   "l1": "Repair Services",
+   "l2": "Phone Repair Shop",
+   "region": "Ubon"
   }
  ],
  "regions": [
