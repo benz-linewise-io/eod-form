@@ -59,6 +59,12 @@
    "l1": "Clothing and Fashion",
    "l2": "Bridal Atelier",
    "region": "Bangkok"
+  },
+  {
+   "name": "Mepromfur",
+   "l1": "Construction and Hardware",
+   "l2": "Furniture Store",
+   "region": "Bangkok"
   }
  ],
  "regions": [
