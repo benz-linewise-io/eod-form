@@ -65,6 +65,18 @@
    "l1": "Construction and Hardware",
    "l2": "Furniture Store",
    "region": "Bangkok"
+  },
+  {
+   "name": "สาริน ชยางกูร",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Ubon"
+  },
+  {
+   "name": "Ubon Service 1997",
+   "l1": "Repair Services",
+   "l2": "Auto Repair",
+   "region": "Ubon"
   }
  ],
  "regions": [
