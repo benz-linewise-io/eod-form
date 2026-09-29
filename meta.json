@@ -101,6 +101,18 @@
    "l1": "Food and Beverage",
    "l2": "Baking Area",
    "region": "Bangkok"
+  },
+  {
+   "name": "สารินวิสต้านาเมือง",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Ubon"
+  },
+  {
+   "name": "สาริน โนว่า บ้านก่อ (Sarin Nova Baan Kor)",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Ubon"
   }
  ],
  "regions": [
