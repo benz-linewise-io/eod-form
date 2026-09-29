@@ -89,6 +89,18 @@
    "l1": "Repair Services",
    "l2": "Phone Repair Shop",
    "region": "Ubon"
+  },
+  {
+   "name": "ป้ายก้าวหน้า",
+   "l1": "Printing and Design",
+   "l2": "Print Shop",
+   "region": "Sakon Nakhon"
+  },
+  {
+   "name": "Miss Mamon",
+   "l1": "Food and Beverage",
+   "l2": "Baking Area",
+   "region": "Bangkok"
   }
  ],
  "regions": [
