@@ -119,6 +119,12 @@
    "l1": "Clothing and Fashion",
    "l2": "Clothing Store",
    "region": "Bangkok"
+  },
+  {
+   "name": "อารียา",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
