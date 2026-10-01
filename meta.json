@@ -125,6 +125,12 @@
    "l1": "Construction and Hardware",
    "l2": "Construction Site",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "Yongsaguan Ubon",
+   "l1": "Retail and Consumer Goods",
+   "l2": "Retail Store",
+   "region": "Ubon"
   }
  ],
  "regions": [
