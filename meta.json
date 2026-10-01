@@ -137,6 +137,12 @@
    "l1": "Repair Services",
    "l2": "Motorcycle Repair",
    "region": "Bangkok"
+  },
+  {
+   "name": "สาริน บ้านจั่น",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Ubon"
   }
  ],
  "regions": [
