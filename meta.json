@@ -131,6 +131,12 @@
    "l1": "Retail and Consumer Goods",
    "l2": "Retail Store",
    "region": "Ubon"
+  },
+  {
+   "name": "ไอซ์ปอลมอเตอร์ไซค์ สำนักงานใหญ่",
+   "l1": "Repair Services",
+   "l2": "Motorcycle Repair",
+   "region": "Bangkok"
   }
  ],
  "regions": [
