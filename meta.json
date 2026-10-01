@@ -143,6 +143,18 @@
    "l1": "Construction and Hardware",
    "l2": "Construction Company",
    "region": "Ubon"
+  },
+  {
+   "name": "ตลาดบางแค (ร้านร้อยพวงมาลัย)",
+   "l1": "Creative Workshops",
+   "l2": "Flower Shop",
+   "region": "Bangkok"
+  },
+  {
+   "name": "ตลาดบางแค (ซ่อมมอเตอร์ไซต์)",
+   "l1": "Repair Services",
+   "l2": "Motorcycle Repair",
+   "region": "Bangkok"
   }
  ],
  "regions": [
