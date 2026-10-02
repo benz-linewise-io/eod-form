@@ -161,6 +161,12 @@
    "l1": "Automotive and Transport",
    "l2": "Auto Repair",
    "region": "Ubon"
+  },
+  {
+   "name": "ธนพลดีไซน์",
+   "l1": "Printing and Design",
+   "l2": "Print Shop",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
