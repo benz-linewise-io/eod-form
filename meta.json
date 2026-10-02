@@ -155,6 +155,12 @@
    "l1": "Repair Services",
    "l2": "Motorcycle Repair",
    "region": "Bangkok"
+  },
+  {
+   "name": "Mitsuthaiyont Ubon",
+   "l1": "Automotive and Transport",
+   "l2": "Auto Repair",
+   "region": "Ubon"
   }
  ],
  "regions": [
