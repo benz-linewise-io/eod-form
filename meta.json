@@ -179,6 +179,24 @@
    "l1": "Printing and Design",
    "l2": "Print Shop",
    "region": "Ubon"
+  },
+  {
+   "name": "ปาล์มฟ้า",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Ubon"
+  },
+  {
+   "name": "Buranapa Group Factory",
+   "l1": "Industrial Manufacturing",
+   "l2": "Manufacturing Factory",
+   "region": "Bangkok"
+  },
+  {
+   "name": "Winnergems manufactory",
+   "l1": "Creative Workshops",
+   "l2": "Jewelry Handicraft",
+   "region": "Bangkok"
   }
  ],
  "regions": [
@@ -938,7 +956,7 @@
   },
   {
    "id": "THA-35",
-   "team": "TH-BKK"
+   "team": "TH-MANCOM"
   },
   {
    "id": "THA-36",
@@ -990,15 +1008,15 @@
   },
   {
    "id": "THA-48",
-   "team": ""
+   "team": "TH-BKK"
   },
   {
    "id": "THA-49",
-   "team": ""
+   "team": "TH-BKK"
   },
   {
    "id": "THA-50",
-   "team": ""
+   "team": "TH-BKK"
   },
   {
    "id": "THA-51",
