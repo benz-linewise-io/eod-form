@@ -20,8 +20,8 @@
   },
   {
    "name": "Bangkhae Market",
-   "l1": "Clothing and Fashion",
-   "l2": "Alterations Studio",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
    "region": "Bangkok"
   },
   {
@@ -173,6 +173,12 @@
    "l1": "Automotive and Transport",
    "l2": "Auto Repair",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "AON Acrylic and Sign",
+   "l1": "Printing and Design",
+   "l2": "Print Shop",
+   "region": "Ubon"
   }
  ],
  "regions": [
