@@ -215,6 +215,12 @@
    "l1": "Clothing and Fashion",
    "l2": "Sewing Factory",
    "region": "Bangkok"
+  },
+  {
+   "name": "ตั้งซุ่นฮวด",
+   "l1": "Repair Services",
+   "l2": "Recycling Center",
+   "region": "Bangkok"
   }
  ],
  "regions": [
