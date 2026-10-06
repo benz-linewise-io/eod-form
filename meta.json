@@ -209,6 +209,12 @@
    "l1": "Industrial Manufacturing",
    "l2": "Manufacturing Factory",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "ตลาดบางแค(ช่างเย็บผ้า)",
+   "l1": "Clothing and Fashion",
+   "l2": "Sewing Factory",
+   "region": "Bangkok"
   }
  ],
  "regions": [
