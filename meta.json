@@ -203,6 +203,12 @@
    "l1": "Automotive and Transport",
    "l2": "Car Detailing",
    "region": "Bangkok"
+  },
+  {
+   "name": "เคเอสคอนกรีต",
+   "l1": "Industrial Manufacturing",
+   "l2": "Manufacturing Factory",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
