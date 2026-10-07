@@ -227,6 +227,12 @@
    "l1": "Construction and Hardware",
    "l2": "Furniture Store",
    "region": "Bangkok"
+  },
+  {
+   "name": "Lab KU",
+   "l1": "Laboratory / Scientific",
+   "l2": "Chemistry Lab",
+   "region": "Bangkok"
   }
  ],
  "regions": [
