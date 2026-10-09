@@ -193,7 +193,7 @@
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-09.2'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-09.3'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -593,8 +593,8 @@ function setType(tp) {
   document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
   $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
   $('transWrap').classList.toggle('hide', tp !== 'Actual');
-  // Actual: cameras and their hours first, then the totals (sum); Plan keeps the original order
-  if (tp === 'Actual') $('hrsCard').after($('totCard')); else $('opsCard').before($('totCard'));
+  // Plan and Actual: operators, cameras (and camera hours) first, then the hours totals
+  $('hrsCard').after($('totCard'));
   if (tp === 'Plan') $('hrs').value = $('hrs').readOnly ? '' : $('hrs').value;
   if (S.meta) { renderChips(); renderProblems(); }
   if (tp === 'Plan') { $('hrs').readOnly = false; $('hrsConv').textContent = ''; }
@@ -846,6 +846,7 @@ $('f').addEventListener('submit', e => e.preventDefault());
 // keep the L1/L2 match list above the phone keyboard
 ['l1', 'l2'].forEach(id => $(id).addEventListener('focus', () => setTimeout(() => $(id).scrollIntoView && $(id).scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)));
 $('submit').onclick = submit;
+$('hrsCard').after($('totCard')); // page order: operators, cameras, camera hours, then hours totals
 $('copyBtn').onclick = () => navigator.clipboard.writeText($('doneMsg').textContent).then(() => $('copyBtn').textContent = t('copied'));
 init();
 </script>
