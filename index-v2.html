@@ -126,7 +126,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="totCard">
       <div class="row">
         <div><label for="hrs"><span id="hrsLbl"></span> <span class="req">*</span></label><input id="hrs" type="text" inputmode="decimal" autocomplete="off" data-i18n-ph="hrsPh" required><div class="hint" id="hrsConv"></div></div>
         <div><label for="hard" data-i18n="hard"></label><input id="hard" type="text" inputmode="decimal" autocomplete="off" data-i18n-ph="hardPh"><div class="hint" id="hardConv"></div><div class="hint" data-i18n="hardHint"></div></div>
@@ -138,6 +138,9 @@
         <div class="hint" id="transConv"></div>
         <div class="hint" data-i18n="transHint"></div>
       </div>
+    </div>
+
+    <div class="card" id="opsCard">
       <label for="ops"><span data-i18n="ops"></span> <span class="req">*</span></label>
       <input id="ops" type="number" inputmode="numeric" min="1" step="1" required>
       <div class="hint" data-i18n="opsHint"></div>
@@ -183,14 +186,14 @@
     <pre id="doneMsg"></pre>
     <button type="button" id="copyBtn" class="chip" data-i18n="copy"></button>
   </div>
+  <div class="ver" id="ver"></div>
 </main>
-<div class="ver" id="ver"></div>
 <div class="bar" id="bar"><button id="submit" type="button" disabled data-i18n="submit"></button></div>
 
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-09.1'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-09.2'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -590,6 +593,8 @@ function setType(tp) {
   document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
   $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
   $('transWrap').classList.toggle('hide', tp !== 'Actual');
+  // Actual: cameras and their hours first, then the totals (sum); Plan keeps the original order
+  if (tp === 'Actual') $('hrsCard').after($('totCard')); else $('opsCard').before($('totCard'));
   if (tp === 'Plan') $('hrs').value = $('hrs').readOnly ? '' : $('hrs').value;
   if (S.meta) { renderChips(); renderProblems(); }
   if (tp === 'Plan') { $('hrs').readOnly = false; $('hrsConv').textContent = ''; }
