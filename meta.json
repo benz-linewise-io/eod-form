@@ -239,6 +239,12 @@
    "l1": "Automotive and Transport",
    "l2": "Auto Repair",
    "region": "Ubon"
+  },
+  {
+   "name": "ลาวัณย์การ์เมนท์",
+   "l1": "Clothing and Fashion",
+   "l2": "Sewing Factory",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
@@ -1082,19 +1088,19 @@
   },
   {
    "id": "THA-56",
-   "team": ""
+   "team": "TH-CHUA"
   },
   {
    "id": "THA-57",
-   "team": ""
+   "team": "TH-CHUA"
   },
   {
    "id": "THA-58",
-   "team": ""
+   "team": "TH-CHUA"
   },
   {
    "id": "THA-59",
-   "team": ""
+   "team": "TH-CHUA"
   }
  ],
  "formVersion": "2026-10-09.1"
