@@ -233,6 +233,12 @@
    "l1": "Laboratory / Scientific",
    "l2": "Chemistry Lab",
    "region": "Bangkok"
+  },
+  {
+   "name": "Cockpit Sisaket",
+   "l1": "Automotive and Transport",
+   "l2": "Auto Repair",
+   "region": "Ubon"
   }
  ],
  "regions": [
