@@ -69,6 +69,17 @@
   .bar button{width:100%;max-width:560px;display:block;margin:0 auto;padding:14px;border:0;border-radius:10px;background:var(--g);color:#fff;font:inherit;font-weight:700}
   .bar button:disabled{opacity:.5}
   pre{white-space:pre-wrap;background:#f7f7f7;border-radius:8px;padding:10px;font:13px/1.4 ui-monospace,monospace}
+  .camh{padding:8px 0;border-bottom:1px solid #f2f2f2}
+  .camh:last-child{border-bottom:0}
+  .camh .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .camh .top b{font-weight:600}
+  .camh .top span{font-size:12px;color:var(--mut)}
+  .hm{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-top:4px}
+  .hm span{font-size:13px;color:var(--mut)}
+  .camh .dec{font-size:12px;margin-top:2px;color:var(--mut)}
+  .camh .dec.err{color:var(--err)}
+  input[readonly]{background:#f3f4f6;color:var(--tx)}
+  .ver{text-align:center;font-size:11px;color:#b0b4ba;margin-top:8px}
   .hide{display:none}
 </style>
 </head>
@@ -115,7 +126,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="totCard">
       <div class="row">
         <div><label for="hrs"><span id="hrsLbl"></span> <span class="req">*</span></label><input id="hrs" type="text" inputmode="decimal" autocomplete="off" data-i18n-ph="hrsPh" required><div class="hint" id="hrsConv"></div></div>
         <div><label for="hard" data-i18n="hard"></label><input id="hard" type="text" inputmode="decimal" autocomplete="off" data-i18n-ph="hardPh"><div class="hint" id="hardConv"></div><div class="hint" data-i18n="hardHint"></div></div>
@@ -127,6 +138,9 @@
         <div class="hint" id="transConv"></div>
         <div class="hint" data-i18n="transHint"></div>
       </div>
+    </div>
+
+    <div class="card" id="opsCard">
       <label for="ops"><span data-i18n="ops"></span> <span class="req">*</span></label>
       <input id="ops" type="number" inputmode="numeric" min="1" step="1" required>
       <div class="hint" data-i18n="opsHint"></div>
@@ -145,6 +159,12 @@
       <div class="hint" data-i18n="probHint"></div>
       <div id="probList"></div>
       <div class="hint" id="probSummary"></div>
+    </div>
+
+    <div class="card hide" id="hrsCard">
+      <div class="lbl"><span data-i18n="camHrsTitle"></span> <span class="req">*</span></div>
+      <div class="hint" data-i18n="camHrsHint"></div>
+      <div id="camHrs"></div>
     </div>
 
     <div class="card">
@@ -166,19 +186,21 @@
     <pre id="doneMsg"></pre>
     <button type="button" id="copyBtn" class="chip" data-i18n="copy"></button>
   </div>
+  <div class="ver" id="ver"></div>
 </main>
 <div class="bar" id="bar"><button id="submit" type="button" disabled data-i18n="submit"></button></div>
 
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
+const FORM_VERSION = '2026-10-09.3'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
 
 const $ = id => document.getElementById(id);
 const S = { type: 'Plan', cams: new Set(), bad: {}, meta: null, profile: null, idToken: null, lang: 'th', posted: null, replaces: null,
-  camsAuto: false, customL2: '' };
+  camsAuto: false, customL2: '', camHrs: {} };
 const PLANS_KEY = 'eod_plans_v1', DRAFT_KEY = 'eod_draft_v1', VENUES_KEY = 'eod_venues_v2', LANG_KEY = 'eod_lang_v1',
   TEAM_KEY = 'eod_team_v1', REGION_KEY = 'eod_region_v1', SENT_KEY = 'eod_sent_v1', RECENT_KEY = 'eod_recent_l_v1';
 const PICK_MAX = 8; // matches shown in the L1/L2 search list (no scrolling)
@@ -210,6 +232,10 @@ const T = {
     askReplace: 'แทนที่อันเดิม', askSecond: 'อีกสถานที่',
     doneTitle: 'ส่งแล้ว ✅', posted: 'บันทึกแล้ว และส่งเข้ากลุ่มแล้ว', notPosted: 'บันทึกแล้ว แต่ยังไม่ได้ส่งเข้ากลุ่ม — กดคัดลอกแล้ววางในกลุ่ม',
     copy: 'คัดลอกข้อความ', copied: 'คัดลอกแล้ว ✓', switchTo: 'EN',
+    camHrsTitle: 'ชั่วโมงที่กล้องแต่ละตัวถ่าย', camHrsHint: 'ใส่ชั่วโมงและนาทีของทุกกล้องที่ถ่าย (ไม่เกิน 16 ชม./กล้อง) กล้องที่ไม่ได้ถ่าย ให้เอาออกจากรายการด้านบน หรือกด "เสีย"/"ขนส่ง"',
+    camHrsOne: 'ชั่วโมงที่กล้องนี้ถ่าย', hU: 'ชม.', mU: 'นาที', hmShow: (h, m) => `${h} ชม. ${m} นาที`,
+    eCamHrs: c => `กรุณาใส่ชั่วโมงของกล้อง ${c}`, eCamMax: c => `${c}: เกิน 16 ชม.`, eCamFmt: c => `${c}: ชั่วโมงหรือนาทีไม่ถูกต้อง (นาที 0–59)`,
+    hrsAuto: 'รวมจากชั่วโมงของแต่ละกล้อง (อัตโนมัติ)',
   },
   en: {
     loading: 'Loading…', plan: 'Plan', actual: 'Actual', date: 'Date', today: 'Today', yesterday: 'Yesterday',
@@ -236,6 +262,10 @@ const T = {
     askReplace: 'Replace it', askSecond: 'Second site',
     doneTitle: 'Sent ✅', posted: 'Saved and posted to the group.', notPosted: 'Saved, but not posted to the group. Copy the message and paste it in the group.',
     copy: 'Copy message', copied: 'Copied ✓', switchTo: 'ไทย',
+    camHrsTitle: 'Hours each camera filmed', camHrsHint: 'Enter hours and minutes for every camera that filmed (max 16 hr per camera). If a camera did not film, remove it above or tap Damaged / In transit.',
+    camHrsOne: 'Hours this camera filmed', hU: 'hr', mU: 'min', hmShow: (h, m) => `${h} hr ${m} min`,
+    eCamHrs: c => `Enter hours for ${c}`, eCamMax: c => `${c}: more than 16 hr`, eCamFmt: c => `${c}: hours or minutes not valid (minutes 0–59)`,
+    hrsAuto: 'Sum of the camera hours (automatic)',
   },
 };
 const t = k => T[S.lang][k];
@@ -299,6 +329,7 @@ function formatMessage(r, plan) {
     'Total ' + word + ' Hour: ' + fmtHr(r.totalHours) + ' (Hard ' + fmtHr(r.hardHours) + ')',
     'Total ' + word + ' Operator: ' + r.operators, '',
     'Camera: ' + r.cameras.length + ' devices (' + r.cameras.join(', ') + ')']);
+  if (!isPlan && r.cameraHours) r.cameras.forEach(c => lines.push(c + ': ' + fmtHr(r.cameraHours[c])));
   if (!isPlan && plan) {
     const pct = plan.totalHours ? Math.round((r.totalHours - plan.totalHours) / plan.totalHours * 100) : null;
     lines.push('vs Plan: ' + fmtHr(plan.totalHours) + ' → ' + fmtHr(r.totalHours) +
@@ -455,7 +486,83 @@ function renderProblems() {
   $('probCard').classList.toggle('hide', S.type !== 'Actual' || !list.length);
   const v = Object.values(S.bad);
   $('probSummary').textContent = v.length ? t('probSum')(v.filter(x => x === 'D').length, v.filter(x => x === 'T').length) : '';
+  renderCamHours();
 }
+// ---------- hours per camera (Actual): hours box + minutes box, stored as decimal hours (2 places) ----------
+const CAM_MAX_HRS = 16;
+function round2(n) { return Math.round(n * 100) / 100; }
+// {h, m} as typed -> {dec, err}. A decimal typed in the hours box (3.5) is accepted while minutes are empty.
+function camHrsRead(v) {
+  const h = String((v && v.h) || '').trim().replace(',', '.'), m = String((v && v.m) || '').trim();
+  if (h === '' && m === '') return { dec: null, err: 'empty' };
+  if (h !== '' && !/^(\d+(\.\d{0,2})?|\.\d{1,2})$/.test(h)) return { dec: null, err: 'fmt' };
+  if (m !== '' && (!/^\d{1,2}$/.test(m) || +m > 59)) return { dec: null, err: 'fmt' };
+  if (h.indexOf('.') >= 0 && m !== '') return { dec: null, err: 'fmt' };
+  const dec = round2((h === '' ? 0 : parseFloat(h)) + (m === '' ? 0 : +m) / 60);
+  if (!(dec > 0)) return { dec: null, err: 'empty' };
+  if (dec > CAM_MAX_HRS) return { dec, err: 'max' };
+  return { dec, err: '' };
+}
+function hmText(dec) { const tm = Math.round(dec * 60); return t('hmShow')(Math.floor(tm / 60), tm % 60); }
+function camHrsLine(id) {
+  const box = document.querySelector(`.camh[data-c="${id}"] .dec`); if (!box) return;
+  const x = camHrsRead(S.camHrs[id]);
+  box.textContent = x.dec === null ? '' : x.err === 'max' ? t('eCamMax')(id) : `= ${x.dec} ${t('hU')} · ${hmText(x.dec)}`;
+  box.classList.toggle('err', x.err === 'max' || x.err === 'fmt');
+  if (x.err === 'fmt') box.textContent = t('eCamFmt')(id);
+}
+function camTotal() {
+  const cams = filmingList();
+  if (!cams.length) return NaN;
+  let sum = 0;
+  for (const c of cams) { const x = camHrsRead(S.camHrs[c]); if (x.err) return NaN; sum += x.dec; }
+  return round2(sum);
+}
+function showCamTotal() {
+  if (S.type !== 'Actual') return;
+  const n = camTotal();
+  $('hrs').value = isNaN(n) ? '' : String(n);
+}
+function renderCamHours() {
+  const on = S.type === 'Actual' && filmingList().length > 0;
+  $('hrsCard').classList.toggle('hide', !on);
+  $('hrs').readOnly = S.type === 'Actual';
+  $('hrsConv').textContent = S.type === 'Actual' ? t('hrsAuto') : ''; $('hrsConv').style.color = '';
+  if (S.type !== 'Actual') { $('camHrs').innerHTML = ''; $('camHrs').dataset.k = ''; return; }
+  const cams = filmingList(), key = cams.join(',') + '|' + S.lang;
+  if ($('camHrs').dataset.k !== key) { // rebuild only when the list changes, so typing keeps focus
+    $('camHrs').dataset.k = key;
+    $('camHrs').innerHTML = cams.map(id => {
+      const v = S.camHrs[id] || {};
+      return `<div class="camh" data-c="${id}"><div class="top"><b>${id}</b><span>${esc(t('camHrsOne'))}</span></div>` +
+        `<div class="hm"><input type="text" inputmode="decimal" autocomplete="off" data-c="${id}" data-p="h" value="${esc(v.h || '')}" aria-label="${id} ${esc(t('hU'))}"><span>${esc(t('hU'))}</span>` +
+        `<input type="text" inputmode="numeric" autocomplete="off" data-c="${id}" data-p="m" value="${esc(v.m || '')}" aria-label="${id} ${esc(t('mU'))}"><span>${esc(t('mU'))}</span></div>` +
+        `<div class="dec"></div></div>`;
+    }).join('');
+    cams.forEach(camHrsLine);
+  }
+  showCamTotal();
+}
+$('camHrs').addEventListener('input', e => {
+  const el = e.target.closest('input[data-c]'); if (!el) return;
+  const id = el.dataset.c, v = S.camHrs[id] = S.camHrs[id] || { h: '', m: '' };
+  v[el.dataset.p] = el.value;
+  el.classList.remove('bad');
+  camHrsLine(id); showCamTotal();
+});
+// 3.5 typed in the hours box becomes 3 hr 30 min when leaving the box
+$('camHrs').addEventListener('focusout', e => {
+  const el = e.target.closest('input[data-p="h"]'); if (!el) return;
+  const id = el.dataset.c, v = S.camHrs[id] || {};
+  if (String(v.h || '').indexOf('.') < 0 || String(v.m || '').trim() !== '') return;
+  const x = camHrsRead(v); if (x.dec === null || x.err === 'fmt') return;
+  const tm = Math.round(x.dec * 60);
+  v.h = String(Math.floor(tm / 60)); v.m = String(tm % 60);
+  const row = document.querySelector(`.camh[data-c="${id}"]`);
+  row.querySelector('[data-p="h"]').value = v.h; row.querySelector('[data-p="m"]').value = v.m;
+  camHrsLine(id); showCamTotal();
+});
+
 function setCams(ids, bad, team, auto) {
   S.cams = new Set(ids || []); S.bad = {};
   Object.keys(bad || {}).forEach(k => { if (S.cams.has(k)) S.bad[k] = bad[k]; });
@@ -486,7 +593,11 @@ function setType(tp) {
   document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
   $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
   $('transWrap').classList.toggle('hide', tp !== 'Actual');
+  // Plan and Actual: operators, cameras (and camera hours) first, then the hours totals
+  $('hrsCard').after($('totCard'));
+  if (tp === 'Plan') $('hrs').value = $('hrs').readOnly ? '' : $('hrs').value;
   if (S.meta) { renderChips(); renderProblems(); }
+  if (tp === 'Plan') { $('hrs').readOnly = false; $('hrsConv').textContent = ''; }
   loadPlans();
 }
 function loadPlans() {
@@ -511,11 +622,18 @@ function fillForm(p) {
   setCams([].concat(p.cameras || [], p.damaged || [], p.inTransit || []), bad, p.team, !!p.fromPlan);
   clearAllBad();
 }
-function fillFromPlan(p) { fillForm(Object.assign({}, p, { fromPlan: true })); $('hrs').focus(); }
+function fillFromPlan(p) {
+  fillForm(Object.assign({}, p, { fromPlan: true }));
+  const first = document.querySelector('#camHrs input');
+  (S.type === 'Actual' && first ? first : $('hrs')).focus();
+}
 
 function collect() {
   const venue = $('venue').value === '__new' ? $('venueNew').value.trim() : $('venue').value;
-  const hrs = parseHours($('hrs').value), hard = $('hard').value.trim() === '' ? hrs : parseHours($('hard').value);
+  const actual = S.type === 'Actual';
+  const hrs = actual ? camTotal() : parseHours($('hrs').value), hard = $('hard').value.trim() === '' ? hrs : parseHours($('hard').value);
+  const cameraHours = {};
+  if (actual) filmingList().forEach(c => { const x = camHrsRead(S.camHrs[c]); cameraHours[c] = x.err ? null : x.dec; });
   const trans = S.type === 'Actual' && $('trans').value.trim() !== '' ? parseHours($('trans').value) : 0;
   return { type: S.type, date: $('date').value, venue, region: $('region').value,
     l1: canonL('l1', $('l1').value) || $('l1').value.trim(), l2: canonL('l2', $('l2').value) || $('l2').value.trim(), l2Custom: !!(S.customL2 && S.customL2 === $('l2').value.trim() && !canonL('l2', $('l2').value)),
@@ -523,11 +641,12 @@ function collect() {
     team: $('team').value === '—' ? '' : $('team').value, cameras: S.type === 'Actual' ? filmingList() : [...S.cams].sort(),
     issues: $('issues').value.trim(),
     damaged: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'D').sort() : [],
-    inTransit: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'T').sort() : [] };
+    inTransit: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'T').sort() : [],
+    cameraHours: actual ? cameraHours : undefined };
 }
 
 // ---------- validation: red outline on each missing field, list at the top, jump to the first one ----------
-const fieldEl = { date: 'date', region: 'region', venue: 'venue', l1: 'l1', l2: 'l2', hrs: 'hrs', hard: 'hard', trans: 'trans', ops: 'ops', team: 'team', cams: 'chips' };
+const fieldEl = { date: 'date', region: 'region', venue: 'venue', l1: 'l1', l2: 'l2', hrs: 'hrs', hard: 'hard', trans: 'trans', ops: 'ops', team: 'team', cams: 'chips', camh: 'camHrs' };
 function clearBad(key) { const el = $(fieldEl[key] || key); if (el) el.classList.remove('bad'); }
 function clearAllBad() { Object.values(fieldEl).forEach(id => $(id) && $(id).classList.remove('bad')); $('errTop').classList.add('hide'); }
 function validate(silent) {
@@ -539,22 +658,31 @@ function validate(silent) {
   if (!r.venue) add('venue', t('eVenue'));
   if (hasLists && !canonL('l1', r.l1)) add('l1', t('eL1'));
   if (S.meta.l2s.length && !canonL('l2', r.l2) && !r.l2Custom) add('l2', t('eL2'));
-  if ($('hrs').value.trim() && isNaN(r.totalHours)) add('hrs', t('eHrsFormat'));
+  const badCam = [];
+  if (r.type === 'Actual') r.cameras.forEach(c => {
+    const x = camHrsRead(S.camHrs[c]);
+    if (x.err === 'empty') add('camh', t('eCamHrs')(c)); else if (x.err === 'max') add('camh', t('eCamMax')(c)); else if (x.err === 'fmt') add('camh', t('eCamFmt')(c));
+    if (x.err) badCam.push(c);
+  });
+  else if ($('hrs').value.trim() && isNaN(r.totalHours)) add('hrs', t('eHrsFormat'));
   else if (!(r.totalHours > 0)) add('hrs', t('eHrs'));
   if ($('hard').value.trim() && isNaN(r.hardHours)) add('hard', t('eHrsFormat'));
-  else if (r.hardHours > r.totalHours) add('hard', t('eHard'));
+  else if (r.totalHours > 0 && r.hardHours > r.totalHours) add('hard', t('eHard'));
   if (isNaN(r.transitionHours)) add('trans', t('eHrsFormat'));
   if (!(r.operators >= 1)) add('ops', t('eOps'));
   else if (r.operators < r.cameras.length) add('ops', t('eOpsCams')(r.operators, r.cameras.length));
   if (!$('team').value) add('team', t('eTeam'));
+  if (r.type === 'Actual' && !badCam.length && r.cameras.length && !(r.totalHours > 0)) add('camh', t('eHrs'));
   if (!r.cameras.length) add('cams', t('eCams'));
-  if (r.cameras.length && r.totalHours > 24 * r.cameras.length) add('hrs', t('e24'));
+  if (r.type !== 'Actual' && r.cameras.length && r.totalHours > 24 * r.cameras.length) add('hrs', t('e24'));
   Object.values(fieldEl).forEach(id => $(id) && $(id).classList.remove('bad'));
   const seen = {}, list = errs.filter(e => !seen[e.msg] && (seen[e.msg] = 1));
-  list.forEach(e => $(fieldEl[e.key]).classList.add('bad'));
+  list.forEach(e => { if (e.key !== 'camh') $(fieldEl[e.key]).classList.add('bad'); });
+  document.querySelectorAll('#camHrs input').forEach(el => el.classList.toggle('bad', badCam.indexOf(el.dataset.c) >= 0 && el.dataset.p === 'h'));
   showBanner(list.length ? `<b>${esc(t('errTitle')(list.length))}</b> ${esc(list.map(e => e.msg).join(', '))}` : '');
   if (list.length && !silent) {
-    const first = list.map(e => $(fieldEl[e.key])).sort((a, b) => (a.compareDocumentPosition(b) & 4) ? -1 : 1)[0];
+    const target = e => e.key === 'camh' ? (document.querySelector('#camHrs input.bad') || $('camHrs')) : $(fieldEl[e.key]);
+    const first = list.map(target).sort((a, b) => (a.compareDocumentPosition(b) & 4) ? -1 : 1)[0];
     if (first.scrollIntoView) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (first.focus && first.tagName !== 'DIV') setTimeout(() => first.focus({ preventScroll: true }), 300);
   }
@@ -577,7 +705,7 @@ function tokenFresh() {
   return !!(d && d.exp && d.exp * 1000 > Date.now() + 60 * 1000);
 }
 function saveDraftAndReload() {
-  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(Object.assign(collect(), { cameras: [...S.cams], hrsRaw: $('hrs').value, hardRaw: $('hard').value, transRaw: $('trans').value }))); } catch (e) { }
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(Object.assign(collect(), { cameras: [...S.cams], hrsRaw: $('hrs').value, hardRaw: $('hard').value, transRaw: $('trans').value, camHrs: S.camHrs }))); } catch (e) { }
   if (!liff.isInClient()) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
   location.reload();
 }
@@ -585,8 +713,10 @@ function restoreDraft() {
   let d = null;
   try { d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); sessionStorage.removeItem(DRAFT_KEY); } catch (e) { }
   if (!d) return;
+  S.camHrs = d.camHrs || {};
   setType(d.type); $('date').value = d.date; markDateBtns(); fillForm(d);
-  $('hrs').value = d.hrsRaw || ''; $('hard').value = d.hardRaw || ''; $('trans').value = d.transRaw || ''; $('issues').value = d.issues || '';
+  if (d.type !== 'Actual') $('hrs').value = d.hrsRaw || ''; else showCamTotal();
+  $('hard').value = d.hardRaw || ''; $('trans').value = d.transRaw || ''; $('issues').value = d.issues || '';
   showBanner(esc(t('reloaded')));
 }
 
@@ -645,6 +775,7 @@ async function submit() {
 
 async function init() {
   S.lang = lsGet(LANG_KEY, null) || 'th';
+  $('ver').textContent = 'v' + FORM_VERSION;
   applyLang();
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -656,6 +787,13 @@ async function init() {
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');
     S.meta = await res.json();
+    if (S.meta.formVersion && S.meta.formVersion > FORM_VERSION) {
+      let tried = ''; try { tried = sessionStorage.getItem('eod_ver_reload') || ''; } catch (e) { }
+      if (tried !== S.meta.formVersion) {
+        try { sessionStorage.setItem('eod_ver_reload', S.meta.formVersion); } catch (e) { }
+        const u = new URL(location.href); u.searchParams.set('v', S.meta.formVersion); location.replace(u.toString()); return;
+      }
+    }
     S.meta.regions = S.meta.regions || [];
     S.meta.l1s = S.meta.l1s || uniq((S.meta.l1l2 || []).map(x => x.l1));
     S.meta.l2s = S.meta.l2s || uniq((S.meta.l1l2 || []).map(x => x.l2));
@@ -708,6 +846,7 @@ $('f').addEventListener('submit', e => e.preventDefault());
 // keep the L1/L2 match list above the phone keyboard
 ['l1', 'l2'].forEach(id => $(id).addEventListener('focus', () => setTimeout(() => $(id).scrollIntoView && $(id).scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)));
 $('submit').onclick = submit;
+$('hrsCard').after($('totCard')); // page order: operators, cameras, camera hours, then hours totals
 $('copyBtn').onclick = () => navigator.clipboard.writeText($('doneMsg').textContent).then(() => $('copyBtn').textContent = t('copied'));
 init();
 </script>
