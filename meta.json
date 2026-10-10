@@ -836,7 +836,7 @@
   },
   {
    "id": "RB-02",
-   "team": "TH-BKK"
+   "team": "TH-MANCOM"
   },
   {
    "id": "RB-03",
@@ -872,11 +872,11 @@
   },
   {
    "id": "RB-11",
-   "team": "TH-BKK"
+   "team": "TH-MANCOM"
   },
   {
    "id": "RB-12",
-   "team": "TH-BKK"
+   "team": "TH-MANCOM"
   },
   {
    "id": "THA-02",
@@ -889,10 +889,6 @@
   {
    "id": "THA-04",
    "team": "TH-CHUA"
-  },
-  {
-   "id": "THA-05",
-   "team": "TH-MANCOM"
   },
   {
    "id": "THA-06",
@@ -1009,10 +1005,6 @@
   {
    "id": "THA-34",
    "team": "TH-BKK"
-  },
-  {
-   "id": "THA-35",
-   "team": "TH-MANCOM"
   },
   {
    "id": "THA-36",
