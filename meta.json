@@ -245,6 +245,12 @@
    "l1": "Clothing and Fashion",
    "l2": "Sewing Factory",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "สกลการยาง",
+   "l1": "Automotive and Transport",
+   "l2": "Auto Repair",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
