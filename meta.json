@@ -251,6 +251,12 @@
    "l1": "Automotive and Transport",
    "l2": "Auto Repair",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "SAU",
+   "l1": "Laboratory / Scientific",
+   "l2": "Chemistry Lab",
+   "region": "Bangkok"
   }
  ],
  "regions": [
