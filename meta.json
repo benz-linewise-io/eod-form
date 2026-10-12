@@ -257,6 +257,12 @@
    "l1": "Laboratory / Scientific",
    "l2": "Chemistry Lab",
    "region": "Bangkok"
+  },
+  {
+   "name": "มีพร้อมเฟอร์นิเจอร์",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Bangkok"
   }
  ],
  "regions": [
