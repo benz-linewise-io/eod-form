@@ -299,6 +299,12 @@
    "l1": "Automotive and Transport",
    "l2": "Auto Repair",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "บ้านทองคอนกรีต",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Ubon"
   }
  ],
  "regions": [
