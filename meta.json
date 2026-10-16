@@ -317,6 +317,12 @@
    "l1": "Creative Workshops",
    "l2": "Woodworking Workshop",
    "region": "Ubon"
+  },
+  {
+   "name": "อาคารวีรวรรณ",
+   "l1": "Construction and Hardware",
+   "l2": "Electrician",
+   "region": "Bangkok"
   }
  ],
  "regions": [
