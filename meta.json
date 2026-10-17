@@ -323,6 +323,12 @@
    "l1": "Construction and Hardware",
    "l2": "Electrician",
    "region": "Bangkok"
+  },
+  {
+   "name": "Nissan Ubon",
+   "l1": "Repair Services",
+   "l2": "Auto Repair",
+   "region": "Ubon"
   }
  ],
  "regions": [
