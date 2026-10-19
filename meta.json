@@ -329,6 +329,12 @@
    "l1": "Repair Services",
    "l2": "Auto Repair",
    "region": "Ubon"
+  },
+  {
+   "name": "จิ้น โฮมเซ็นเตอร์ (โซลาร์เซลล์ )",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Company",
+   "region": "Bangkok"
   }
  ],
  "regions": [
