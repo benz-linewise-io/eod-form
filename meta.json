@@ -341,6 +341,12 @@
    "l1": "Repair Services",
    "l2": "Phone Repair Shop",
    "region": "Bangkok"
+  },
+  {
+   "name": "Rompoe apartment",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Bangkok"
   }
  ],
  "regions": [
