@@ -353,6 +353,12 @@
    "l1": "Construction and Hardware",
    "l2": "Home",
    "region": "Bangkok"
+  },
+  {
+   "name": "ขอนแก่นการไฟฟ้า",
+   "l1": "Energy and Utilities",
+   "l2": "Home",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
