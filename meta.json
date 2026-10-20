@@ -359,6 +359,12 @@
    "l1": "Energy and Utilities",
    "l2": "Home",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "U-Service สาขาชลบุรี",
+   "l1": "Industrial Manufacturing",
+   "l2": "Recycling Center",
+   "region": "Bangkok"
   }
  ],
  "regions": [
