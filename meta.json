@@ -347,6 +347,12 @@
    "l1": "Construction and Hardware",
    "l2": "Construction Site",
    "region": "Bangkok"
+  },
+  {
+   "name": "ไซต์งานบรม",
+   "l1": "Construction and Hardware",
+   "l2": "Home",
+   "region": "Bangkok"
   }
  ],
  "regions": [
