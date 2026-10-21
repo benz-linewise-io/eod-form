@@ -365,6 +365,12 @@
    "l1": "Industrial Manufacturing",
    "l2": "Recycling Center",
    "region": "Bangkok"
+  },
+  {
+   "name": "โรงพยาบาลยโสธร",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Ubon"
   }
  ],
  "regions": [
