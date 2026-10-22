@@ -377,6 +377,18 @@
    "l1": "Retail and Consumer Goods",
    "l2": "Retail Store",
    "region": "Ubon"
+  },
+  {
+   "name": "บ้านสวนขวัญ",
+   "l1": "Creative Workshops",
+   "l2": "Handcraft Workshop",
+   "region": "Bangkok"
+  },
+  {
+   "name": "บ้านสวนขวัญ (ทำความสะอาด)",
+   "l1": "Cleaning and Sanitation",
+   "l2": "Cleaning Service",
+   "region": "Bangkok"
   }
  ],
  "regions": [
