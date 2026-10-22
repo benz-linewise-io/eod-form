@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Venue Lead</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+
+  :root{--g:#06c755;--bg:#f5f6f7;--card:#fff;--tx:#1c1c1e;--mut:#6b7280;--bd:#dfe2e6;--err:#d93025}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.4 -apple-system,system-ui,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--tx)}
+  main{max-width:560px;margin:0 auto;padding:12px 16px calc(110px + env(safe-area-inset-bottom))}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 12px}
+  h1{font-size:16px;margin:0;font-weight:600}
+  .lang{border:1px solid var(--bd);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--tx)}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+  label,.lbl{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+  .card>label:first-child,.card>.lbl:first-child{margin-top:0}
+  .req{color:var(--err);font-weight:700}
+  input,select,textarea{width:100%;font:inherit;font-size:16px;padding:10px;border:1px solid var(--bd);border-radius:8px;background:#fff;color:var(--tx)}
+  select{-webkit-appearance:none;appearance:none;padding-right:32px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center}
+  textarea{min-height:70px;resize:vertical}
+  .bad{border-color:var(--err)!important;box-shadow:0 0 0 2px rgba(217,48,37,.15)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+  .seg button{border:0;padding:12px;font:inherit;font-weight:600;background:#fff;color:var(--mut)}
+  .seg button.on{background:var(--g);color:#fff}
+  .dateRow{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+  .dateRow input{width:10.5rem;flex:1 1 10.5rem;min-width:0}
+  .dateRow .mini{flex:0 0 auto;white-space:nowrap;padding:8px 10px}
+  /* iPhone: date boxes keep their own minimum width and overflow the card unless told otherwise */
+  input[type=date]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;min-height:44px;line-height:1.2}
+  input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+  input[type=date]::-webkit-calendar-picker-indicator{margin-left:4px}
+  .mini{border:1px solid var(--bd);border-radius:999px;background:#fff;padding:8px 12px;font:inherit;font-size:13px}
+  .mini.on{background:var(--g);border-color:var(--g);color:#fff}
+  .search{padding-left:34px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center}
+  .pk{position:relative}
+  .pick{position:absolute;left:0;right:0;z-index:5;background:#fff;border:1px solid var(--bd);border-radius:8px;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .pick button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #f0f0f0;background:#fff;padding:10px;font:inherit;font-size:14px}
+  .pick .none,.pick .more{padding:8px 10px;font-size:12px;color:var(--mut)}
+  .pick .en{display:block;font-size:12px;color:var(--mut)}
+  .pick .sec{padding:6px 10px 4px;font-size:11px;font-weight:700;color:var(--mut);background:#fafafa;text-transform:uppercase;letter-spacing:.02em}
+  .pick button.typed{color:#7a5200;background:#fffaf0}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;border-radius:8px}
+  .chips.bad{padding:6px;min-height:40px}
+  .chip{border:1px solid var(--bd);border-radius:999px;padding:8px 12px;background:#fff;font:inherit;font-size:14px;min-width:72px}
+  .chip.on{background:var(--g);border-color:var(--g);color:#fff}
+  .chip.on.dmg{background:#fde8e7;border-color:var(--err);color:#a3261d}
+  .chip.on.trn{background:#fff3d6;border-color:#c98a00;color:#7a5200}
+  .team{flex-basis:100%;font-size:12px;font-weight:600;color:var(--mut);margin:8px 0 0}
+  .team:first-child{margin-top:0}
+  .toggle{margin-top:10px;border:1px dashed var(--bd);border-radius:8px;background:#fff;padding:9px 12px;font:inherit;font-size:13px;width:100%;text-align:left;color:var(--tx)}
+  .prob{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #f2f2f2}
+  .prob b{font-weight:600}
+  .prob button{border:1px solid var(--bd);border-radius:8px;background:#fff;padding:7px 10px;font:inherit;font-size:13px}
+  .prob button.d{background:#fde8e7;border-color:var(--err);color:#a3261d;font-weight:600}
+  .prob button.t{background:#fff3d6;border-color:#c98a00;color:#7a5200;font-weight:600}
+  .hint{font-size:12px;color:var(--mut);margin-top:4px}
+  .note{font-size:12px;color:var(--tx);background:#f7f7f7;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;margin-top:10px}
+  .plans button{display:block;width:100%;text-align:left;margin-top:6px;padding:10px;border:1px dashed var(--g);border-radius:8px;background:#f0fff5;font:inherit}
+  .banner{position:sticky;top:6px;z-index:20;background:#fde8e7;border:1px solid var(--err);color:#8a1c14;border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:13px;line-height:1.35;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .banner b{font-weight:700}
+  .ask{border:1px solid var(--g);background:#f0fff5}
+  .ask .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .ask button{padding:12px;border-radius:10px;border:1px solid var(--bd);background:#fff;font:inherit;font-weight:600}
+  .ask button.pri{background:var(--g);border-color:var(--g);color:#fff}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--bd);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+  .bar button{width:100%;max-width:560px;display:block;margin:0 auto;padding:14px;border:0;border-radius:10px;background:var(--g);color:#fff;font:inherit;font-weight:700}
+  .bar button:disabled{opacity:.5}
+  pre{white-space:pre-wrap;background:#f7f7f7;border-radius:8px;padding:10px;font:13px/1.4 ui-monospace,monospace}
+  .camh{padding:8px 0;border-bottom:1px solid #f2f2f2}
+  .camh:last-child{border-bottom:0}
+  .camh .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .camh .top b{font-weight:600}
+  .camh .top span{font-size:12px;color:var(--mut)}
+  .hm{display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-top:4px}
+  .hm span{font-size:13px;color:var(--mut)}
+  .camh .dec{font-size:12px;margin-top:2px;color:var(--mut)}
+  .camh .dec.err{color:var(--err)}
+  input[readonly]{background:#f3f4f6;color:var(--tx)}
+  .ver{text-align:center;font-size:11px;color:#b0b4ba;margin-top:8px}
+  .hide{display:none}
+
+  .warn{background:#fff4e5;border:1px solid #f0a020;color:#6b3d00;border-radius:8px;padding:8px 10px;font-size:13px;margin:6px 0 2px}
+  .warn b{color:#a3261d}
+  .dup{margin-top:8px;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+  .dup .h{font-size:12px;font-weight:700;padding:6px 10px;background:#fafafa;color:var(--mut)}
+  .dup .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid #f0f0f0;font-size:14px}
+  .dup .it small{display:block;font-size:12px;color:var(--mut)}
+  .dup .it button{flex:0 0 auto;border:1px solid var(--g);color:#047a35;background:#f0fff5;border-radius:999px;padding:6px 10px;font:inherit;font-size:12px;font-weight:600}
+  .dup.strong{border-color:var(--err)}
+  .dup.strong .h{background:#fde8e7;color:#8a1c14}
+  .ok{font-size:12px;color:#047a35;margin-top:6px}
+  .tick{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:13px;color:var(--tx)}
+  .tick input{width:20px;height:20px;flex:0 0 auto;margin:0}
+  .bands{display:grid;gap:8px}
+  .band{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--bd);border-radius:10px;padding:12px;background:#fff;font:inherit}
+  .band b{font-size:17px;min-width:64px}
+  .band span{font-size:13px;color:var(--mut)}
+  .band.on{border-color:var(--g);background:#f0fff5;box-shadow:0 0 0 2px rgba(6,199,85,.25)}
+  .band.on span{color:#047a35}
+  .regs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .regs .chip{width:100%}
+  .gps{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .gps button{flex:0 0 auto}
+  .gps .hint{margin:0}
+  .sel{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border:1px solid var(--g);background:#f0fff5;border-radius:8px;font-weight:600}
+  .sel button{border:0;background:none;color:var(--mut);font:inherit;font-size:13px;text-decoration:underline}
+  .miss{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .miss span{font-size:11px;border-radius:999px;padding:2px 8px;background:#fff3d6;color:#7a5200}
+  .miss span.got{background:#e6f7ed;color:#047a35}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="who">Venue Lead</h1>
+    <a class="lang" id="backEod" href="./">← EOD</a>
+  </header>
+  <div id="loading" class="card">กำลังโหลด…</div>
+  <div id="errTop" class="banner hide" role="alert"></div>
+
+  <form id="f" class="hide" autocomplete="off">
+    <div class="card">
+      <div class="seg" id="modeSeg">
+        <button type="button" data-v="Lead" class="on">➕ สถานที่ใหม่</button>
+        <button type="button" data-v="VenueInfo">📝 เพิ่มข้อมูลสถานที่เดิม</button>
+      </div>
+      <div class="hint" id="modeHint"></div>
+    </div>
+
+    <!-- NEW VENUE -->
+    <div class="card" id="nameCard">
+      <label for="name">ชื่อสถานที่ <span class="req">*</span></label>
+      <div class="warn">⚠️ <b>พิมพ์ชื่อให้ถูกต้อง</b> ตามป้ายร้าน / Google Maps<br>ชื่อนี้ต้องตรงกับที่ใช้ในรายงาน EOD ทุกวัน — ใช้คิดค่า Finder's fee</div>
+      <input id="name" placeholder="เช่น อู่สามชัยยนต์ (สาขาบางแค)">
+      <div id="dupBox"></div>
+      <label class="tick hide" id="notDupWrap"><input type="checkbox" id="notDup"> <span>ตรวจแล้ว <b>เป็นคนละที่</b> กับรายการด้านบน</span></label>
+    </div>
+
+    <!-- EXISTING VENUE -->
+    <div class="card hide" id="pickCard">
+      <div class="pk">
+        <label for="pickQ">เลือกสถานที่ <span class="req">*</span></label>
+        <input id="pickQ" class="search" placeholder="ค้นหาชื่อสถานที่">
+        <div class="pick hide" id="pickList"></div>
+      </div>
+      <div id="picked" class="hide"></div>
+    </div>
+
+    <div class="card" id="whereCard">
+      <div class="lbl">ภูมิภาค <span class="req">*</span></div>
+      <div class="regs" id="regs"></div>
+      <div id="l1Wrap" class="pk">
+        <label for="l1">ประเภทธุรกิจ (L1) <span class="req">*</span></label>
+        <input id="l1" class="search" autocomplete="off" placeholder="ค้นหา เช่น อาหาร, ซ่อม">
+        <div class="pick hide" id="l1List"></div>
+      </div>
+      <label for="map">ตำแหน่ง <span class="req" id="mapReq">*</span></label>
+      <input id="map" type="url" inputmode="url" placeholder="วางลิงก์ Google Maps">
+      <div class="gps"><button type="button" class="mini" id="gpsBtn">📍 ใช้ตำแหน่งปัจจุบัน</button><div class="hint" id="gpsTxt">กดเมื่ออยู่ที่สถานที่</div></div>
+    </div>
+
+    <div class="card" id="contactCard">
+      <div class="row">
+        <div><label for="cName">ชื่อผู้ติดต่อ <span class="req">*</span></label><input id="cName" placeholder="เช่น คุณต้อง"></div>
+        <div><label for="cPhone">เบอร์โทร <span class="req">*</span></label><input id="cPhone" type="tel" inputmode="tel" placeholder="08x-xxx-xxxx"></div>
+      </div>
+      <div class="row">
+        <div><label for="workers">จำนวนคนทำงาน <span class="req">*</span></label><input id="workers" type="number" inputmode="numeric" min="1" step="1" placeholder="เช่น 5"></div>
+        <div><label for="rate">เรทที่เสนอ (฿/ชม.)</label><input id="rate" type="text" inputmode="decimal" placeholder="ไม่บังคับ"></div>
+      </div>
+      <label for="hours">เวลาทำงาน</label>
+      <input id="hours" placeholder="เช่น จ-ส 8:00-17:00">
+    </div>
+
+    <div class="card">
+      <div class="lbl">จำนวนพนักงานทั้งหมดของกิจการ <span class="req">*</span></div>
+      <div class="hint" style="margin:0 0 8px">นับทั้งบริษัท/ร้าน (ไม่ใช่แค่คนที่ถ่าย) — ใช้กำหนดชั่วโมงสูงสุดของ Orange</div>
+      <div class="bands" id="bands"></div>
+    </div>
+
+    <div class="card">
+      <label for="bizId">เลขนิติบุคคล / เลขผู้เสียภาษี (13 หลัก)</label>
+      <input id="bizId" type="text" inputmode="numeric" maxlength="17" placeholder="ไม่บังคับ">
+      <div class="hint" id="bizHint">ถ้ามี ช่วยให้ตรวจสอบสถานที่ได้เร็วขึ้น</div>
+      <label for="note">หมายเหตุ</label>
+      <textarea id="note" placeholder="เช่น เจ้าของสะดวกวันเสาร์, ต้องโทรก่อนเข้า"></textarea>
+    </div>
+  </form>
+
+  <div id="done" class="card hide">
+    <b>✅ ส่งแล้ว ขอบคุณ!</b>
+    <p id="doneNote" class="hint"></p>
+    <pre id="doneMsg"></pre>
+    <button type="button" id="again" class="chip">+ ส่งอีกที่</button>
+  </div>
+  <div class="ver" id="ver"></div>
+</main>
+<div class="bar" id="bar"><button id="submit" type="button" disabled>ส่ง Venue Lead</button></div>
+
+<script>
+const LIFF_ID = '2011743278-31NUxIDC';
+const FORM_VERSION = '2026-10-22.1';
+const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
+const FORM_ENTRY = 'entry.287169977';
+// Region codes match the "Region" dropdown in the Venue Leads sheet
+const REGIONS = [['BKK', 'กรุงเทพฯ'], ['Ubon', 'อุบลฯ'], ['Sakon', 'สกลนคร'], ['Chonburi', 'ชลบุรี']];
+const EOD_REGION = { 'Bangkok': 'BKK', 'Ubon': 'Ubon', 'Sakon Nakhon': 'Sakon', 'Chonburi': 'Chonburi' };
+const BANDS = [['<15 (cap 50 h)', 'น้อยกว่า 15 คน', 'ถ่ายได้สูงสุด 50 ชม.'], ['15-100 (cap 100 h)', '15 – 100 คน', 'ถ่ายได้สูงสุด 100 ชม.'], ['>100 (cap 1,000 h)', 'มากกว่า 100 คน', 'ถ่ายได้สูงสุด 1,000 ชม.']];
+
+const $ = id => document.getElementById(id);
+const S = { mode: 'Lead', region: '', band: '', l1: '', lat: '', lng: '', picked: null, meta: null, profile: null, idToken: null, live: false };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+function norm(v) { return String(v || '').toLowerCase().replace(/[็-๎]/g, '').replace(/[()\[\]\-_.,'"&]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function bigrams(v) { const t = norm(v).replace(/ /g, ''), a = []; for (let i = 0; i < t.length - 1; i++) a.push(t.slice(i, i + 2)); return a.length ? a : [t]; }
+function dice(a, b) { const x = bigrams(a), y = bigrams(b).slice(); let hit = 0; x.forEach(g => { const i = y.indexOf(g); if (i >= 0) { hit++; y.splice(i, 1); } }); return (2 * hit) / (x.length + bigrams(b).length); }
+function sim(a, b) { // also catches "Prosper" vs "Prosper Salon (Ladprao)"
+  const na = norm(a).replace(/ /g, ''), nb = norm(b).replace(/ /g, '');
+  if (!na || !nb) return 0; if (na === nb) return 1;
+  const s = dice(a, b); return (na.length >= 4 && nb.indexOf(na) >= 0) || (nb.length >= 4 && na.indexOf(nb) >= 0) ? Math.max(s, 0.8) : s;
+}
+function showBanner(html) { $('errTop').innerHTML = html; $('errTop').classList.toggle('hide', !html); }
+function bad(id, on) { const el = $(id); if (el) el.classList.toggle('bad', !!on); }
+function regionTh(code) { const r = REGIONS.find(x => x[0] === code); return r ? r[1] : code || ''; }
+function bandShort(v) { const b = BANDS.find(x => x[0] === v); return b ? b[1] : v; }
+
+// ---------- everything known: EOD venues + Venue Leads sheet ----------
+function known() {
+  const out = [], seen = {};
+  (S.meta.leads || []).forEach(l => { const k = norm(l.n); if (!k || seen[k]) return; seen[k] = 1; if (l.u) seen[norm(l.u)] = 1;
+    out.push({ name: l.n, eod: l.u || '', region: l.r || '', status: l.s || 'Lead', miss: l.m || [], src: 'lead' }); });
+  (S.meta.venues || []).forEach(v => { const k = norm(v.name); if (!k || seen[k]) return; seen[k] = 1;
+    out.push({ name: v.name, eod: v.name, region: EOD_REGION[v.region] || v.region || '', status: 'Filming', miss: ['band', 'map'], src: 'eod' }); });
+  return out;
+}
+function matches(q, n) { return known().map(k => ({ k, s: Math.max(sim(q, k.name), k.eod ? sim(q, k.eod) : 0) })).filter(o => o.s >= 0.45).sort((a, b) => b.s - a.s).slice(0, n || 4); }
+const STATUS_TH = { Lead: 'Lead', Contacted: 'ติดต่อแล้ว', Previewed: 'ดูสถานที่แล้ว', Booked: 'จองแล้ว', Filming: 'กำลังถ่าย', Done: 'ถ่ายเสร็จ', Dropped: 'ยกเลิก' };
+function statusTh(s) { return STATUS_TH[s] || s; }
+
+// ---------- mode ----------
+function setMode(m) {
+  S.mode = m;
+  [...$('modeSeg').children].forEach(b => b.classList.toggle('on', b.dataset.v === m));
+  const isNew = m === 'Lead';
+  $('nameCard').classList.toggle('hide', !isNew); $('pickCard').classList.toggle('hide', isNew);
+  $('contactCard').classList.toggle('hide', !isNew); $('l1Wrap').classList.toggle('hide', !isNew);
+  $('mapReq').classList.toggle('hide', !isNew);
+  $('modeHint').textContent = isNew ? 'สถานที่ที่ยังไม่เคยถ่าย / ยังไม่อยู่ในระบบ' : 'สถานที่ที่ถ่ายอยู่แล้ว — เพิ่มจำนวนพนักงาน, เลขนิติบุคคล, ตำแหน่ง';
+  $('submit').textContent = isNew ? 'ส่ง Venue Lead' : 'บันทึกข้อมูลสถานที่';
+  showBanner(''); if (S.live) validate(true);
+}
+
+// ---------- duplicate check ----------
+function renderDup() {
+  const q = $('name').value.trim(), box = $('dupBox');
+  box._hits = [];
+  if (q.length < 2) { box.innerHTML = ''; $('notDupWrap').classList.add('hide'); return; }
+  const hits = matches(q, 4); box._hits = hits; const strong = hits.length && hits[0].s >= 0.75;
+  if (!hits.length) { box.innerHTML = '<div class="ok">✓ ยังไม่มีในระบบ</div>'; $('notDupWrap').classList.add('hide'); $('notDup').checked = false; return; }
+  box.innerHTML = '<div class="dup' + (strong ? ' strong' : '') + '"><div class="h">' + (strong ? '⛔ อาจมีในระบบแล้ว — ตรวจก่อนส่ง' : 'ชื่อคล้ายในระบบ') + '</div>' +
+    hits.map((o, i) => '<div class="it"><div>' + esc(o.k.name) + '<small>' + esc(regionTh(o.k.region)) + ' · ' + esc(statusTh(o.k.status)) + '</small></div>' +
+      '<button type="button" data-i="' + i + '">ใช่ที่นี่</button></div>').join('') + '</div>';
+  box._hits = hits;
+  $('notDupWrap').classList.toggle('hide', !strong); if (!strong) $('notDup').checked = false;
+}
+$('dupBox').onclick = e => { // "this is the same place" -> switch to add-info for it
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  const k = $('dupBox')._hits[+b.dataset.i].k;
+  setMode('VenueInfo'); pick(k); window.scrollTo && window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ---------- existing venue picker ----------
+function renderPick() {
+  const q = $('pickQ').value.trim(), L = $('pickList');
+  let list = q ? matches(q, 8).map(o => o.k) : known().filter(k => !S.region || k.region === S.region).slice(0, 8);
+  if (q && !list.length) list = known().filter(k => norm(k.name).indexOf(norm(q)) >= 0).slice(0, 8);
+  L.innerHTML = list.length ? list.map((k, i) => '<button type="button" data-i="' + i + '">' + esc(k.name) + '<span class="en">' + esc(regionTh(k.region)) + ' · ' + esc(statusTh(k.status)) + '</span></button>').join('')
+    : '<div class="none">ไม่พบ — ถ้าเป็นที่ใหม่ ให้กด "สถานที่ใหม่" ด้านบน</div>';
+  L._list = list; L.classList.remove('hide');
+}
+function pick(k) {
+  S.picked = k; $('pickQ').value = ''; $('pickList').classList.add('hide');
+  $('pickQ').parentNode.classList.add('hide'); bad('pickQ', false);
+  const MISS = { band: 'จำนวนพนักงาน', id: 'เลขนิติบุคคล', map: 'ตำแหน่ง' };
+  $('picked').innerHTML = '<div class="sel"><span>' + esc(k.name) + '</span><button type="button" id="unpick">เปลี่ยน</button></div>' +
+    '<div class="miss">' + Object.keys(MISS).map(m => '<span class="' + (k.miss.indexOf(m) >= 0 ? '' : 'got') + '">' + (k.miss.indexOf(m) >= 0 ? 'ยังไม่มี: ' : '✓ ') + MISS[m] + '</span>').join('') + '</div>';
+  $('picked').classList.remove('hide');
+  $('unpick').onclick = () => { S.picked = null; $('picked').classList.add('hide'); $('pickQ').parentNode.classList.remove('hide'); $('pickQ').focus(); };
+  if (k.region && !S.region) setRegion(k.region);
+  if (S.live) validate(true);
+}
+$('pickQ').oninput = renderPick; $('pickQ').onfocus = renderPick;
+$('pickList').onclick = e => { const b = e.target.closest('button[data-i]'); if (b) pick($('pickList')._list[+b.dataset.i]); };
+
+// ---------- region / band / L1 ----------
+function setRegion(c) { S.region = c; [...$('regs').children].forEach(b => b.classList.toggle('on', b.dataset.v === c)); bad('regs', false); }
+$('regs').innerHTML = REGIONS.map(r => '<button type="button" class="chip" data-v="' + r[0] + '">' + r[1] + '</button>').join('');
+$('regs').onclick = e => { const b = e.target.closest('button'); if (b) setRegion(b.dataset.v); };
+$('bands').innerHTML = BANDS.map(b => '<button type="button" class="band" data-v="' + esc(b[0]) + '"><b>' + b[1] + '</b><span>' + b[2] + '</span></button>').join('');
+$('bands').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.band = b.dataset.v; [...$('bands').children].forEach(x => x.classList.toggle('on', x === b)); bad('bands', false); };
+
+function l1th(en) { return (S.meta.l1th || {})[en] || ''; }
+function renderL1() {
+  const q = $('l1').value.trim(), L = $('l1List'), all = S.meta.l1s || [];
+  let list = q ? all.map(x => ({ x, s: Math.max(dice(q, x), dice(q, l1th(x) || x), norm(l1th(x) + ' ' + x).indexOf(norm(q)) >= 0 ? 1 : 0) })).filter(o => o.s >= 0.3).sort((a, b) => b.s - a.s).map(o => o.x) : all;
+  L.innerHTML = list.slice(0, 30).map(x => '<button type="button" data-v="' + esc(x) + '">' + esc(l1th(x) || x) + (l1th(x) ? '<span class="en">' + esc(x) + '</span>' : '') + '</button>').join('') || '<div class="none">ไม่พบ ลองคำอื่น</div>';
+  L.classList.remove('hide');
+}
+$('l1').oninput = () => { S.l1 = ''; renderL1(); };
+$('l1').onfocus = () => { renderL1(); setTimeout(() => $('l1').scrollIntoView && $('l1').scrollIntoView({ behavior: 'smooth', block: 'start' }), 250); };
+$('l1List').onclick = e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.l1 = b.dataset.v; $('l1').value = l1th(S.l1) || S.l1; $('l1List').classList.add('hide'); bad('l1', false); };
+document.addEventListener('click', e => {
+  if (!e.target.closest('#l1Wrap')) $('l1List').classList.add('hide');
+  if (!e.target.closest('#pickCard')) $('pickList').classList.add('hide');
+});
+
+// ---------- GPS ----------
+$('gpsBtn').onclick = () => {
+  if (!navigator.geolocation) { $('gpsTxt').textContent = 'โทรศัพท์ไม่รองรับ — วางลิงก์ Maps แทน'; return; }
+  $('gpsTxt').textContent = 'กำลังหาตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(p => {
+    S.lat = p.coords.latitude.toFixed(6); S.lng = p.coords.longitude.toFixed(6);
+    $('gpsTxt').textContent = '✓ ' + S.lat + ', ' + S.lng + ' (±' + Math.round(p.coords.accuracy) + ' ม.)'; $('gpsBtn').classList.add('on'); bad('map', false);
+  }, () => { $('gpsTxt').textContent = 'เปิดตำแหน่งไม่ได้ — วางลิงก์ Maps แทน'; }, { enableHighAccuracy: true, timeout: 15000 });
+};
+
+// ---------- business ID ----------
+function idDigits() { return $('bizId').value.replace(/\D/g, ''); }
+function idOk(d) { if (!/^\d{13}$/.test(d)) return false; let s = 0; for (let i = 0; i < 12; i++) s += +d[i] * (13 - i); return (11 - s % 11) % 10 === +d[12]; }
+$('bizId').oninput = () => {
+  const d = idDigits(); bad('bizId', false);
+  $('bizHint').textContent = !d ? 'ถ้ามี ช่วยให้ตรวจสอบสถานที่ได้เร็วขึ้น' : d.length < 13 ? 'พิมพ์แล้ว ' + d.length + '/13 หลัก' : idOk(d) ? (d[0] === '0' ? '✓ เลขนิติบุคคลถูกต้อง' : '✓ เลขบัตรประชาชน (ร้านบุคคลธรรมดา) — เก็บเป็นความลับ') : '✗ เลขไม่ถูกต้อง ตรวจอีกครั้ง';
+};
+
+// ---------- validate / collect ----------
+function validate(quiet) {
+  const err = [], isNew = S.mode === 'Lead';
+  const mark = (id, cond, msg) => { bad(id, cond); if (cond) err.push(msg); };
+  const map = $('map').value.trim(), hasLoc = !!(S.lat || /^https?:\/\/\S+/.test(map));
+  if (isNew) {
+    const strong = $('dupBox')._hits && $('dupBox')._hits.length && $('dupBox')._hits[0].s >= 0.75;
+    mark('name', $('name').value.trim().length < 2, 'ชื่อสถานที่');
+    if (strong && !$('notDup').checked) { err.push('ยืนยันว่าเป็นคนละที่ (หรือกด "ใช่ที่นี่")'); bad('notDupWrap', true); } else bad('notDupWrap', false);
+    mark('l1', !S.l1, 'ประเภทธุรกิจ (L1)');
+    mark('map', !hasLoc, 'ตำแหน่ง (ลิงก์ Maps หรือกดใช้ตำแหน่งปัจจุบัน)');
+    mark('cName', !$('cName').value.trim(), 'ชื่อผู้ติดต่อ');
+    mark('cPhone', !/^0\d{8,9}$/.test($('cPhone').value.replace(/\D/g, '')), 'เบอร์โทร (9–10 หลัก)');
+    mark('workers', !(+$('workers').value >= 1), 'จำนวนคนทำงาน');
+  } else {
+    mark('pickQ', !S.picked, 'เลือกสถานที่');
+    if (map && !/^https?:\/\/\S+/.test(map)) mark('map', true, 'ลิงก์ Maps ไม่ถูกต้อง');
+  }
+  mark('regs', !S.region, 'ภูมิภาค');
+  mark('bands', !S.band, 'จำนวนพนักงานทั้งหมด');
+  const d = idDigits(); mark('bizId', d && !idOk(d), 'เลขนิติบุคคลไม่ถูกต้อง');
+  showBanner(err.length ? '<b>กรอกให้ครบ:</b> ' + err.map(esc).join(' · ') : '');
+  return err.length ? null : collect();
+}
+function collect() {
+  const isNew = S.mode === 'Lead';
+  return {
+    type: S.mode, formVersion: FORM_VERSION,
+    venue: isNew ? $('name').value.trim().replace(/\s+/g, ' ') : S.picked.name,
+    eodVenue: isNew ? '' : (S.picked.eod || ''), region: S.region, l1: isNew ? S.l1 : '',
+    contact: isNew ? $('cName').value.trim() : '', phone: isNew ? $('cPhone').value.replace(/\D/g, '') : '',
+    map: $('map').value.trim(), lat: S.lat, lng: S.lng,
+    workers: isNew ? +$('workers').value : '', band: S.band, hours: isNew ? $('hours').value.trim() : '', rate: isNew ? $('rate').value.trim() : '',
+    bizId: idDigits(), note: $('note').value.trim(), notDuplicate: isNew && $('notDup').checked,
+  };
+}
+function mapUrl(r) { return r.map || (r.lat ? 'https://maps.google.com/?q=' + r.lat + ',' + r.lng : ''); }
+function message(r) { // goes to the LINE group: no phone, no ID number
+  return (r.type === 'Lead' ? '📍 Venue lead ใหม่' : '📝 อัปเดตข้อมูลสถานที่') + '\n' +
+    'สถานที่: ' + r.venue + '\nภูมิภาค: ' + regionTh(r.region) + (r.l1 ? '\nประเภท: ' + (l1th(r.l1) || r.l1) : '') +
+    (r.workers ? '\nคนทำงาน: ' + r.workers + ' คน' : '') + '\nพนักงานทั้งหมด: ' + bandShort(r.band) +
+    (r.hours ? '\nเวลาทำงาน: ' + r.hours : '') + (r.rate ? '\nเรท: ' + r.rate + ' ฿/ชม.' : '') +
+    (mapUrl(r) ? '\nแผนที่: ' + mapUrl(r) : '') + (r.note ? '\nหมายเหตุ: ' + r.note : '') +
+    '\nโดย: ' + (S.profile ? S.profile.displayName : '');
+}
+
+function tokenFresh() { const d = liff.getDecodedIDToken && liff.getDecodedIDToken(); return !!(d && d.exp && d.exp * 1000 > Date.now() + 60 * 1000); }
+async function submit() {
+  S.live = true;
+  const r = validate(false);
+  if (!r) { window.scrollTo && window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (!tokenFresh()) { showBanner('<b>หมดเวลาเข้าสู่ระบบ</b> — กำลังโหลดใหม่ กรุณากรอกอีกครั้ง'); setTimeout(() => location.reload(), 1500); return; }
+  S.idToken = liff.getIDToken();
+  const btn = $('submit'); btn.disabled = true; btn.textContent = 'กำลังส่ง…';
+  r.id = 'LEAD-' + new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date()).replace(/-/g, '') + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  const msg = message(r);
+  try {
+    const body = new URLSearchParams();
+    body.append(FORM_ENTRY, JSON.stringify({ idToken: S.idToken, profile: S.profile, report: r }));
+    await fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body });
+    let posted = false;
+    const ctx = liff.getContext && liff.getContext();
+    if (liff.isInClient() && ctx && ['group', 'room', 'utou'].includes(ctx.type)) {
+      try { await liff.sendMessages([{ type: 'text', text: msg.slice(0, 5000) }]); posted = true; } catch (e) { }
+    }
+    showBanner('');
+    $('f').classList.add('hide'); $('bar').classList.add('hide'); $('done').classList.remove('hide');
+    $('doneMsg').textContent = msg;
+    $('doneNote').textContent = posted ? 'ส่งเข้ากลุ่ม LINE และบันทึกในชีต Venue Leads แล้ว' : 'บันทึกในชีต Venue Leads แล้ว (เปิดจากในกลุ่ม LINE เพื่อโพสต์ในกลุ่มด้วย)';
+  } catch (e) {
+    showBanner('<b>ส่งไม่สำเร็จ</b> — ตรวจอินเทอร์เน็ตแล้วกดส่งอีกครั้ง');
+    btn.disabled = false; btn.textContent = S.mode === 'Lead' ? 'ส่ง Venue Lead' : 'บันทึกข้อมูลสถานที่';
+  }
+}
+
+async function init() {
+  $('ver').textContent = 'v' + FORM_VERSION;
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+    S.profile = await liff.getProfile();
+    S.idToken = liff.getIDToken();
+    $('who').textContent = 'Venue Lead · ' + S.profile.displayName;
+    const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('meta.json not found');
+    S.meta = await res.json();
+    if (S.meta.formVersion && S.meta.formVersion > FORM_VERSION) {
+      let tried = ''; try { tried = sessionStorage.getItem('lead_ver_reload') || ''; } catch (e) { }
+      if (tried !== S.meta.formVersion) { try { sessionStorage.setItem('lead_ver_reload', S.meta.formVersion); } catch (e) { }
+        const u = new URL(location.href); u.searchParams.set('v', S.meta.formVersion); location.replace(u.toString()); return; }
+    }
+    const q = new URLSearchParams(location.search).get('mode');
+    setMode(q === 'info' ? 'VenueInfo' : 'Lead');
+    $('loading').classList.add('hide'); $('f').classList.remove('hide'); $('submit').disabled = false;
+  } catch (e) { $('loading').textContent = 'โหลดไม่สำเร็จ: ' + e.message; }
+}
+
+$('modeSeg').onclick = e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.v); };
+$('name').oninput = () => { bad('name', false); renderDup(); };
+$('notDup').onchange = () => bad('notDupWrap', false);
+['cName', 'cPhone', 'workers', 'map'].forEach(id => $(id).addEventListener('input', () => bad(id, false)));
+$('f').addEventListener('submit', e => e.preventDefault());
+['input', 'click', 'change'].forEach(ev => $('f').addEventListener(ev, () => { if (S.live) setTimeout(() => validate(true), 0); }));
+$('submit').onclick = submit;
+$('again').onclick = () => location.reload();
+init();
+</script>
+</body>
+</html>
