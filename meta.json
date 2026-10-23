@@ -389,6 +389,12 @@
    "l1": "Cleaning and Sanitation",
    "l2": "Cleaning Service",
    "region": "Bangkok"
+  },
+  {
+   "name": "ก่อสร้างเจริญนคร(มีพร้อมเฟอร์)",
+   "l1": "Construction and Hardware",
+   "l2": "Home",
+   "region": "Bangkok"
   }
  ],
  "regions": [
