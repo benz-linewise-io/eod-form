@@ -401,6 +401,12 @@
    "l1": "Construction and Hardware",
    "l2": "Office",
    "region": "Bangkok"
+  },
+  {
+   "name": "ไซต์งานบ้านนทบุรี",
+   "l1": "Construction and Hardware",
+   "l2": "Home",
+   "region": "Bangkok"
   }
  ],
  "regions": [
