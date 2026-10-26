@@ -407,6 +407,12 @@
    "l1": "Construction and Hardware",
    "l2": "Home",
    "region": "Bangkok"
+  },
+  {
+   "name": "ลิฟวิ่ง ยโสธร",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Ubon"
   }
  ],
  "regions": [
@@ -1637,7 +1643,6 @@
    "s": "Done",
    "m": [
     "band",
-    "id",
     "map"
    ]
   },
