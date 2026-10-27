@@ -204,7 +204,7 @@
 
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-22.1';
+const FORM_VERSION = '2026-10-23.1';
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // Region codes match the "Region" dropdown in the Venue Leads sheet
@@ -382,12 +382,35 @@ function message(r) { // goes to the LINE group: no phone, no ID number
     '\nโดย: ' + (S.profile ? S.profile.displayName : '');
 }
 
+const PAGE_T0 = Date.now(), PAGE_MAX_MS = 60 * 60 * 1000, DRAFT_KEY = 'lead_draft';   // a page open longer than this is reloaded before sending (draft kept)
+function saveDraftAndReload() {
+  const v = id => $(id).value;
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ mode: S.mode, name: v('name'), notDup: $('notDup').checked, region: S.region, l1: S.l1, map: v('map'), lat: S.lat, lng: S.lng,
+    cName: v('cName'), cPhone: v('cPhone'), workers: v('workers'), rate: v('rate'), hours: v('hours'), band: S.band, bizId: v('bizId'), note: v('note'), picked: S.picked && S.picked.name })); } catch (e) { }
+  if (!liff.isInClient()) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
+  location.reload();
+}
+function restoreDraft() {
+  let d = null;
+  try { d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); sessionStorage.removeItem(DRAFT_KEY); } catch (e) { }
+  if (!d) return;
+  setMode(d.mode === 'VenueInfo' ? 'VenueInfo' : 'Lead');
+  ['name', 'map', 'cName', 'cPhone', 'workers', 'rate', 'hours', 'bizId', 'note'].forEach(id => { $(id).value = d[id] || ''; });
+  $('notDup').checked = !!d.notDup; S.lat = d.lat || ''; S.lng = d.lng || '';
+  if (S.lat) $('gpsTxt').textContent = '✓ ' + S.lat + ', ' + S.lng;
+  if (d.region) setRegion(d.region);
+  if (d.l1) { S.l1 = d.l1; $('l1').value = l1th(d.l1) || d.l1; }
+  if (d.band) { S.band = d.band; [...$('bands').children].forEach(x => x.classList.toggle('on', x.dataset.v === d.band)); }
+  if (d.picked) { const k = known().find(x => x.name === d.picked); if (k) pick(k); }
+  renderDup(); $('bizId').oninput();
+  showBanner('<b>โหลดฟอร์มใหม่แล้ว</b> — ข้อมูลที่กรอกไว้ยังอยู่ ตรวจแล้วกดส่งอีกครั้ง');
+}
 function tokenFresh() { const d = liff.getDecodedIDToken && liff.getDecodedIDToken(); return !!(d && d.exp && d.exp * 1000 > Date.now() + 60 * 1000); }
 async function submit() {
   S.live = true;
   const r = validate(false);
   if (!r) { window.scrollTo && window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-  if (!tokenFresh()) { showBanner('<b>หมดเวลาเข้าสู่ระบบ</b> — กำลังโหลดใหม่ กรุณากรอกอีกครั้ง'); setTimeout(() => location.reload(), 1500); return; }
+  if (!tokenFresh() || Date.now() - PAGE_T0 > PAGE_MAX_MS) { saveDraftAndReload(); return; }
   S.idToken = liff.getIDToken();
   const btn = $('submit'); btn.disabled = true; btn.textContent = 'กำลังส่ง…';
   r.id = 'LEAD-' + new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date()).replace(/-/g, '') + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -429,6 +452,7 @@ async function init() {
     }
     const q = new URLSearchParams(location.search).get('mode');
     setMode(q === 'info' ? 'VenueInfo' : 'Lead');
+    restoreDraft();
     $('loading').classList.add('hide'); $('f').classList.remove('hide'); $('submit').disabled = false;
   } catch (e) { $('loading').textContent = 'โหลดไม่สำเร็จ: ' + e.message; }
 }
