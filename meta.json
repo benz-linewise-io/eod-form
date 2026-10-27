@@ -425,6 +425,12 @@
    "l1": "Construction and Hardware",
    "l2": "Construction Site",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "ALIKA (ช.ศิลป์สถาปัตย์ (2525))",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Bangkok"
   }
  ],
  "regions": [
@@ -2088,8 +2094,7 @@
    "s": "Filming",
    "m": [
     "band",
-    "id",
-    "map"
+    "id"
    ]
   },
   {
