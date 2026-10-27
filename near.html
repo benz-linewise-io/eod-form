@@ -10,84 +10,91 @@
 <style>
   :root{--g:#06c755;--blue:#2f6fde;--bg:#f5f6f7;--tx:#1c1c1e;--mut:#6b7280;--bd:#dfe2e6;--amber:#f2a33a;--grey:#9aa1ad;--red:#e5484d}
   *{box-sizing:border-box}
-  body{margin:0;font:15px/1.4 -apple-system,system-ui,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--tx)}
-  .bar{position:sticky;top:0;z-index:1000;background:var(--g);color:#fff;padding:10px 12px 12px}
-  .bar .top{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;margin-bottom:10px}
-  .bar .top a{color:#fff;text-decoration:none;background:rgba(255,255,255,.22);border-radius:10px;padding:4px 10px;font-size:15px}
-  .sbox{position:relative}
-  .search{width:100%;font:inherit;font-size:16px;padding:11px 38px 11px 38px;border:0;border-radius:12px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center;color:var(--tx)}
-  .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:#eef0f3;border-radius:50%;width:28px;height:28px;font-size:15px;color:var(--mut)}
-  .opts{position:absolute;left:0;right:0;top:48px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;color:var(--tx);z-index:5}
-  .opt{display:block;width:100%;text-align:left;border:0;border-top:1px solid #eef0f3;background:#fff;padding:11px 14px;font:inherit}
+  html,body{height:100%}
+  body{margin:0;font:15px/1.4 -apple-system,system-ui,"Noto Sans Thai",sans-serif;background:var(--bg);color:var(--tx);
+    height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+  /* fixed top: one green row + one thin filter row; then the map; only the list below scrolls */
+  .bar{flex:none;position:relative;z-index:1000;background:var(--g);padding:7px 8px;display:flex;gap:6px;align-items:center}
+  .rf{flex:none;width:36px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.22);color:#fff;font-size:19px;font-weight:700;line-height:1}
+  .rf.spin{animation:sp 0.8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .back{flex:none;color:#fff;text-decoration:none;background:rgba(255,255,255,.22);border-radius:9px;padding:6px 9px;font-size:14px;font-weight:700;white-space:nowrap}
+  .sbox{position:relative;flex:1;min-width:0}
+  .search{width:100%;font:inherit;font-size:16px;padding:7px 32px 7px 32px;border:0;border-radius:10px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 9px center;color:var(--tx)}
+  .clr{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:#eef0f3;border-radius:50%;width:24px;height:24px;font-size:13px;color:var(--mut)}
+  .opts{position:absolute;left:0;right:0;top:40px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;color:var(--tx);z-index:5}
+  .opt{display:block;width:100%;text-align:left;border:0;border-top:1px solid #eef0f3;background:#fff;padding:10px 12px;font:inherit}
   .opt:first-child{border-top:0}
   .opt b{display:block;font-size:15px}
-  main{max-width:560px;margin:0 auto;padding:10px 12px 40px}
   .hide{display:none!important}
-  .from{display:flex;align-items:center;gap:8px;font-size:14px;margin:0 2px 8px}
-  .from b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mini{font-size:13px;color:var(--mut)}
-  .pill{border:1.5px solid var(--bd);background:#fff;border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;font-weight:600;color:var(--tx);white-space:nowrap}
+  .sub{flex:none;display:flex;align-items:center;gap:6px;padding:5px 8px;background:#fff;border-bottom:1px solid var(--bd);font-size:12px}
+  .from{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  .mini{font-size:12px;color:var(--mut)}
+  .pill{flex:none;border:1.5px solid var(--bd);background:#fff;border-radius:999px;padding:3px 9px;font:inherit;font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap}
   .pill.on{background:var(--g);border-color:var(--g);color:#fff}
-  .filters{display:flex;gap:8px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px}
-  select.pill{-webkit-appearance:none;appearance:none;padding-right:26px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center}
+  .pill.me{border-color:var(--blue);color:var(--blue)}
+  select.pill{-webkit-appearance:none;appearance:none;max-width:120px;padding-right:22px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center}
   select.pill.on{background-color:var(--g);color:#fff}
-  #map{height:46vh;min-height:300px;max-height:460px;border-radius:14px;overflow:hidden;border:1px solid var(--bd);margin-bottom:10px;background:#e8efe6}
-  .card{background:#fff;border:1px solid var(--bd);border-radius:12px;margin-bottom:6px;overflow:hidden}
+  #map{flex:none;height:44vh;height:44dvh;min-height:200px;max-height:480px;background:#e8efe6;border-bottom:1px solid var(--bd)}
+  .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 8px 24px}
+  .card{background:#fff;border:1px solid var(--bd);border-radius:11px;margin-bottom:5px;overflow:hidden;scroll-margin:6px}
   .card.open{border-color:var(--blue);box-shadow:0 0 0 2px rgba(47,111,222,.18)}
-  .head{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;padding:8px 10px;font:inherit;color:inherit}
-  .num{flex:0 0 26px;height:26px;font-size:13px;border-radius:50%;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .head{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;padding:7px 9px;font:inherit;color:inherit}
+  .num{flex:0 0 24px;height:24px;font-size:12px;border-radius:50%;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
   .mid{flex:1;min-width:0}
-  .mid b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .km{font-weight:800;font-size:16px;white-space:nowrap;text-align:right}
-  .km small{font-size:12px;font-weight:600}
-  .chev{color:var(--mut);font-size:14px;transition:transform .15s}
+  .mid b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .km{font-weight:800;font-size:15px;white-space:nowrap;text-align:right}
+  .km small{font-size:11px;font-weight:600}
+  .chev{color:var(--mut);font-size:13px;transition:transform .15s}
   .card.open .chev{transform:rotate(180deg)}
-  .st{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;margin-right:4px}
+  .st{display:inline-block;font-size:11px;font-weight:700;padding:0 7px;border-radius:999px;margin-right:4px}
   .s-done{background:#e6f8ee;color:#05813a}.s-talk{background:#fff3df;color:#9a5b00}.s-lead{background:#eef0f3;color:#5b6475}
-  .body{padding:0 10px 10px 44px;display:flex;flex-direction:column;gap:4px;font-size:14px}
-  .acts{display:flex;gap:8px;margin-top:6px}
-  .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:12px 8px;font:inherit;font-size:16px;font-weight:700;border:0;text-decoration:none}
+  .body{padding:0 9px 9px 41px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+  .acts{display:flex;gap:8px;margin-top:5px}
+  .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:11px;padding:10px 8px;font:inherit;font-size:15px;font-weight:700;border:0;text-decoration:none}
   .b-green{background:var(--g);color:#fff}.b-white{background:#fff;border:2px solid var(--bd);color:var(--tx)}.b-off{background:#eef0f3;color:#9aa1ad}
-  .more{width:100%;margin-top:4px;border:2px dashed var(--bd);background:#fff;border-radius:12px;padding:12px;font:inherit;font-size:15px;font-weight:700;color:var(--blue)}
-  .count{text-align:center;font-size:13px;color:var(--mut);margin:8px 0 2px}
-  .msg{background:#fff8e1;border-radius:12px;padding:12px 14px;font-size:14px;margin:6px 0 10px}
+  .more{width:100%;margin-top:3px;border:2px dashed var(--bd);background:#fff;border-radius:11px;padding:10px;font:inherit;font-size:14px;font-weight:700;color:var(--blue)}
+  .count{text-align:center;font-size:12px;color:var(--mut);margin:6px 0 2px}
+  .msg{background:#fff8e1;border-radius:11px;padding:10px 12px;font-size:13px;margin:0 0 8px}
   .err{background:#fde2e2;color:#8a1f17}
-  #loading{text-align:center;color:var(--mut);padding:60px 0}
-  .pin{width:28px;height:28px;border-radius:50%;color:#fff;font:700 13px/22px system-ui;text-align:center;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+  #loading{text-align:center;color:var(--mut);padding:40px 0}
+  .pin{width:26px;height:26px;border-radius:50%;color:#fff;font:700 12px/20px system-ui;text-align:center;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .pin.guess{opacity:.75;border-style:dashed}
-  .pin.sel{transform:scale(1.25);border-color:#2f6fde}
-  .ver{text-align:center;color:#b4b9c2;font-size:11px;margin-top:20px}
+  .pin.sel{transform:scale(1.35);border-color:#2f6fde;box-shadow:0 0 0 3px rgba(47,111,222,.35),0 1px 4px rgba(0,0,0,.35)}
+  .ver{text-align:center;color:#b4b9c2;font-size:11px;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="bar">
-  <div class="top"><a href="index.html">← EOD</a><span>🗺️ ร้านใกล้ๆ</span></div>
+  <a class="back" href="index.html">← EOD</a>
   <div class="sbox">
     <input id="q" class="search" type="text" enterkeyhint="search" placeholder="ค้นหาสถานที่ใกล้เคียง" autocomplete="off">
     <button id="clr" class="clr hide" type="button" aria-label="ล้าง">✕</button>
     <div id="opts" class="opts hide"></div>
   </div>
+  <button id="rf" type="button" class="rf" aria-label="รีเฟรช">↻</button>
 </div>
-<main>
+<div class="sub">
+  <span class="from">📍 <span id="fromTxt">กำลังหาตำแหน่ง…</span></span>
+  <button id="meBtn" type="button" class="pill me hide">ใกล้ฉัน</button>
+  <button id="fFilmed" type="button" class="pill">✓ เคยถ่าย</button>
+  <select id="fCat" class="pill"><option value="">ทุกประเภท</option></select>
+</div>
+<div id="map"></div>
+<div class="scroll" id="scroll">
   <div id="loading">กำลังหาตำแหน่งของคุณ…</div>
+  <div id="gpsMsg" class="msg hide"></div>
   <div id="app" class="hide">
-    <div class="from"><span>📍</span><b id="fromTxt"></b><button id="meBtn" type="button" class="pill hide">ใกล้ฉัน</button></div>
-    <div id="gpsMsg" class="msg hide"></div>
-    <div class="filters">
-      <button id="fFilmed" type="button" class="pill">✓ เคยถ่ายแล้ว</button>
-      <select id="fCat" class="pill"><option value="">ประเภท: ทั้งหมด</option></select>
-    </div>
-    <div id="map"></div>
     <div id="list"></div>
     <div id="count" class="count"></div>
     <button id="more" type="button" class="more hide">ดูเพิ่มอีก 5 ร้าน ↓</button>
-    <div class="mini" style="text-align:center;margin-top:10px">ระยะเป็นเส้นตรง · ≈ = ตำแหน่งโดยประมาณ</div>
+    <div class="mini" style="text-align:center;margin-top:8px">ระยะเป็นเส้นตรง · ≈ = ตำแหน่งโดยประมาณ</div>
   </div>
   <div class="ver" id="ver"></div>
-</main>
+</div>
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.3';
+const FORM_VERSION = '2026-10-28.5';
 const API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
 const CAT_TH = { 'Construction and Hardware': 'ก่อสร้าง', 'Food and Beverage': 'อาหาร', 'Factory': 'โรงงาน', 'Industrial Manufacturing': 'การผลิต', 'Clothing and Fashion': 'เสื้อผ้า', 'Repair Services': 'ซ่อม', 'Automotive and Transport': 'รถยนต์', 'Beauty and Personal Care': 'ความงาม', 'Cleaning and Sanitation': 'ทำความสะอาด', 'Healthcare and Pharmacy': 'สุขภาพ/ยา', 'Laboratory / Scientific': 'แล็บ', 'Retail and Consumer Goods': 'ร้านค้า', 'Energy and Utilities': 'พลังงาน', 'Food Processing': 'แปรรูปอาหาร', 'Printing and Design': 'ป้าย/พิมพ์' };
 const $ = id => document.getElementById(id);
@@ -135,7 +142,7 @@ function render() {
       <span class="mid"><b>${esc(v.n)}</b><span class="mini"><span class="st ${st.cls}">${st.th}</span>${esc(catTh(v.c))}</span></span>
       <span class="km">${approx}${x.d < 10 ? x.d.toFixed(1) : Math.round(x.d)}<small> กม.</small></span><span class="chev">▾</span></button>${body}</div>`;
   }).join('') : (S.filmed || S.cat ? '<div class="msg">ไม่มีร้านตรงกับตัวกรอง — ลองปิดตัวกรอง</div>' : '<div class="msg">ยังไม่มีร้านที่มีพิกัดในระยะ 100 กม.</div>');
-  $('count').textContent = S.ranked.length ? 'แสดง ' + list.length + ' จาก ' + S.ranked.length + ' ร้าน · ใกล้สุดอยู่บน' : '';
+  $('count').textContent = (S.ranked.length ? 'แสดง ' + list.length + ' จาก ' + S.ranked.length + ' ร้าน · ใกล้สุดอยู่บน' : '') + (S.at ? ' · อัปเดต ' + new Date(S.at).toTimeString().slice(0, 5) : '');
   $('more').classList.toggle('hide', S.shown >= S.ranked.length);
   drawMap(list);
 }
@@ -143,9 +150,11 @@ $('list').onclick = e => {
   const nav = e.target.closest('[data-nav]'); if (nav) { navigate(S.ranked[+nav.dataset.nav].v); return; }
   const h = e.target.closest('.head'); if (!h) return;
   const i = +h.dataset.i; S.open = S.open === i ? -1 : i; render();
-  if (S.open >= 0) setTimeout(() => $('c' + i).scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
+  if (S.open >= 0) showCard(i);
 };
 $('more').onclick = () => { S.shown += 5; render(); };
+// keep the tapped card in view inside the list; the map never moves
+function showCard(i) { setTimeout(() => { const c = $('c' + i); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 30); }
 $('fFilmed').onclick = () => { S.filmed = !S.filmed; $('fFilmed').classList.toggle('on', S.filmed); S.shown = 5; S.open = -1; render(); };
 $('fCat').onchange = () => { S.cat = $('fCat').value; $('fCat').classList.toggle('on', !!S.cat); S.shown = 5; S.open = -1; render(); };
 
@@ -175,12 +184,13 @@ function drawMap(list) {
   list.forEach((x, i) => {
     pts.push([x.v.la, x.v.lo]);
     const cls = (x.v.g === 'guess' ? 'guess' : '') + (i === S.open ? ' sel' : '');
-    L.marker([x.v.la, x.v.lo], { icon: pinIcon(i + 1, stat(x.v.s).col, cls) })
-      .on('click', () => { S.open = i; render(); setTimeout(() => $('c' + i).scrollIntoView({ behavior: 'smooth', block: 'center' }), 30); }).addTo(S.layer);
+    L.marker([x.v.la, x.v.lo], { icon: pinIcon(i + 1, stat(x.v.s).col, cls), zIndexOffset: i === S.open ? 900 : 0 })
+      .on('click', () => { S.open = i; render(); showCard(i); }).addTo(S.layer);
   });
   // same view for the whole list; tapping a venue only highlights its pin
   const key = pts.map(p => p.join()).join('|');
-  setTimeout(() => { S.map.invalidateSize(); if (key !== S.viewKey) { S.viewKey = key; S.map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 }); } }, 40);
+  S.pts = pts;
+  setTimeout(() => { S.map.invalidateSize(); if (key !== S.viewKey) { S.viewKey = key; S.map.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); } }, 40);
 }
 
 // ---------- search: switch the start point to a venue ----------
@@ -201,7 +211,7 @@ $('opts').onclick = e => {
   useOrigin({ la: v.la, lo: v.lo, label: v.n, self: v });
 };
 $('meBtn').onclick = () => { $('q').value = ''; $('clr').classList.add('hide'); if (S.me) useOrigin(S.me); };
-function useOrigin(o) { S.origin = o; S.shown = 5; S.open = -1; $('gpsMsg').classList.add('hide'); render(); window.scrollTo(0, 0); }
+function useOrigin(o) { S.origin = o; S.shown = 5; S.open = -1; $('gpsMsg').classList.add('hide'); render(); $('scroll').scrollTop = 0; }
 function showGpsMsg(html) { $('gpsMsg').innerHTML = html; $('gpsMsg').classList.remove('hide'); }
 function locateMe() {
   return new Promise(res => {
@@ -209,6 +219,30 @@ function locateMe() {
     navigator.geolocation.getCurrentPosition(p => res({ la: p.coords.latitude, lo: p.coords.longitude, self: null }), () => res(null), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   });
 }
+
+// ---------- data: venues from the sheet; refresh = pull the latest now ----------
+async function loadVenues(fresh) {
+  const res = await fetch(API + '?a=venues' + (fresh ? '&fresh=1' : '') + '&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }).then(r => r.json());
+  if (!res.ok) throw new Error(res.error === 'not_runner' ? 'บัญชี LINE นี้ยังไม่อยู่ในรายชื่อรันเนอร์ — ติดต่อแอน' : res.error);
+  S.all = res.venues || []; S.at = res.at || Date.now();
+  const cats = [...new Set(S.all.map(v => v.c).filter(Boolean))].sort((a, b) => catTh(a).localeCompare(catTh(b), 'th'));
+  if (S.cat && cats.indexOf(S.cat) < 0) { S.cat = ''; $('fCat').classList.remove('on'); }
+  $('fCat').innerHTML = '<option value="">ทุกประเภท</option>' + cats.map(c => `<option value="${esc(c)}">${esc(catTh(c))}</option>`).join('');
+  $('fCat').value = S.cat;
+}
+$('rf').onclick = async () => {
+  if ($('rf').classList.contains('spin')) return;
+  $('rf').classList.add('spin');
+  try {
+    const keep = S.origin && S.origin.self ? S.origin.self.n : null;
+    const [, me] = await Promise.all([loadVenues(true), locateMe()]);
+    if (me) S.me = me;
+    const self = keep && S.all.find(v => v.n === keep && v.la != null);
+    S.origin = self ? { la: self.la, lo: self.lo, label: self.n, self } : (S.me || S.origin);
+    S.open = -1; S.viewKey = null; $('loading').classList.add('hide'); $('app').classList.remove('hide'); render();
+  } catch (e) { showGpsMsg('รีเฟรชไม่สำเร็จ: ' + esc(e.message || e)); }
+  $('rf').classList.remove('spin');
+};
 
 // ---------- start ----------
 async function init() {
@@ -218,16 +252,14 @@ async function init() {
     if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
     const d = liff.getDecodedIDToken && liff.getDecodedIDToken();
     if (!d || !d.exp || d.exp * 1000 < Date.now() + 30000) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
-    const [res, me] = await Promise.all([fetch(API + '?a=venues&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }).then(r => r.json()), locateMe()]);
-    if (!res.ok) throw new Error(res.error === 'not_runner' ? 'บัญชี LINE นี้ยังไม่อยู่ในรายชื่อรันเนอร์ — ติดต่อแอน' : res.error);
-    S.all = res.venues || [];
-    const cats = [...new Set(S.all.map(v => v.c).filter(Boolean))].sort((a, b) => catTh(a).localeCompare(catTh(b), 'th'));
-    $('fCat').innerHTML = '<option value="">ประเภท: ทั้งหมด</option>' + cats.map(c => `<option value="${esc(c)}">${esc(catTh(c))}</option>`).join('');
+    const [, me] = await Promise.all([loadVenues(false), locateMe()]);
     $('loading').classList.add('hide'); $('app').classList.remove('hide');
     if (me) { S.me = me; useOrigin(me); }
     else { render(); showGpsMsg('เปิดตำแหน่ง (GPS) ไม่ได้ — <b>พิมพ์ชื่อร้านด้านบน</b> เพื่อดูร้านที่อยู่ใกล้ร้านนั้น'); $('q').focus(); }
   } catch (e) { $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br>ปิดแล้วเปิดใหม่อีกครั้ง</div>'; }
 }
+// screen size changed (keyboard, rotation): keep every pin in view
+window.addEventListener('resize', () => { if (S.map && S.pts) { S.map.invalidateSize(); S.map.fitBounds(S.pts, { padding: [24, 24], maxZoom: 15 }); } });
 init();
 </script>
 </body>
