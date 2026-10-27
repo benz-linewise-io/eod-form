@@ -87,7 +87,7 @@
 <main>
   <header>
     <h1 id="who"></h1>
-    <span style="display:flex;gap:6px"><a class="lang" href="lead.html" style="text-decoration:none;background:#f0fff5;border-color:var(--g);color:#047a35">📍 Venue lead</a><button type="button" id="langBtn" class="lang">EN</button></span>
+    <span style="display:flex;gap:6px"><a class="lang" href="near.html" style="text-decoration:none;background:#eef4ff;border-color:#2f6fde;color:#1f4fa8">🗺️ ร้านใกล้ๆ</a><a class="lang" href="lead.html" style="text-decoration:none;background:#f0fff5;border-color:var(--g);color:#047a35">📍 Venue lead</a><button type="button" id="langBtn" class="lang">EN</button></span>
   </header>
   <div id="loading" class="card" data-i18n="loading"></div>
   <div id="errTop" class="banner hide" role="alert"></div>
@@ -113,6 +113,12 @@
       <label for="venue"><span data-i18n="venue"></span> <span class="req">*</span></label>
       <select id="venue" required></select>
       <input id="venueNew" class="hide" data-i18n-ph="venueNewPh" style="margin-top:6px">
+      <div id="gpsCard" class="hide" style="margin-top:10px;background:#eef4ff;border:2px solid #2f6fde;border-radius:12px;padding:12px;text-align:center">
+        <div style="font-weight:700">📍 ร้านนี้ยังไม่มีพิกัดบนแผนที่</div>
+        <div style="font-size:13px;color:#6b7280;margin:2px 0 8px">กดครั้งเดียวตอนอยู่ที่ร้าน — ร้านจะขึ้นบนแผนที่ "ร้านใกล้ๆ" ให้ทุกคน</div>
+        <button type="button" id="gpsBtn" style="width:100%;border:0;border-radius:10px;padding:12px;background:#2f6fde;color:#fff;font:inherit;font-weight:700;font-size:16px">📍 บันทึกพิกัดร้าน</button>
+        <div id="gpsTxt" style="font-size:14px;margin-top:6px"></div>
+      </div>
       <div class="pk">
         <label for="l1">L1 <span class="req">*</span></label>
         <input id="l1" class="search" autocomplete="off" data-i18n-ph="searchL1">
@@ -193,7 +199,7 @@
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-23.1'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-27.2'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -593,6 +599,7 @@ function setType(tp) {
   document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
   $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
   $('transWrap').classList.toggle('hide', tp !== 'Actual');
+  renderGps();
   // Plan and Actual: operators, cameras (and camera hours) first, then the hours totals
   $('hrsCard').after($('totCard'));
   if (tp === 'Plan') $('hrs').value = $('hrs').readOnly ? '' : $('hrs').value;
@@ -642,7 +649,8 @@ function collect() {
     issues: $('issues').value.trim(),
     damaged: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'D').sort() : [],
     inTransit: S.type === 'Actual' ? Object.keys(S.bad).filter(k => S.bad[k] === 'T').sort() : [],
-    cameraHours: actual ? cameraHours : undefined };
+    cameraHours: actual ? cameraHours : undefined,
+    gps: !actual && S.gps && S.gps.venue === venue ? { lat: S.gps.lat, lng: S.gps.lng, acc: S.gps.acc } : undefined };
 }
 
 // ---------- validation: red outline on each missing field, list at the top, jump to the first one ----------
@@ -774,6 +782,36 @@ async function submit() {
   }
 }
 
+// ---------- venue GPS on Plan: one tap per venue, puts it on the "Nearby venues" map (near.html) ----------
+const NEAR_API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
+function gpsKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9ก-๙]/g, ''); }
+async function loadGpsDone() {
+  try {
+    const r = await fetch(NEAR_API + '?a=venues&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }), j = await r.json();
+    if (!j.ok) return;
+    S.gpsDone = new Set(); j.venues.filter(v => v.g === 'gps').forEach(v => [v.n].concat(v.a || []).forEach(x => S.gpsDone.add(gpsKey(x))));
+    renderGps();
+  } catch (e) { }
+}
+function curVenue() { return $('venue').value === '__new' ? $('venueNew').value.trim() : $('venue').value; }
+function renderGps() {
+  const v = curVenue(), need = S.type === 'Plan' && !!v && !(S.gpsDone && S.gpsDone.has(gpsKey(v)));
+  $('gpsCard').classList.toggle('hide', !need);
+  if (need && !(S.gps && S.gps.venue === v)) { $('gpsBtn').classList.remove('hide'); $('gpsBtn').textContent = '📍 บันทึกพิกัดร้าน'; $('gpsTxt').textContent = ''; }
+}
+$('gpsBtn').onclick = () => {
+  if (!navigator.geolocation) { $('gpsTxt').textContent = 'โทรศัพท์นี้ใช้ GPS ไม่ได้ — ข้ามได้เลย'; return; }
+  const v = curVenue(); $('gpsBtn').textContent = '📍 กำลังหาตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(p => {
+    S.gps = { venue: v, lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), acc: Math.round(p.coords.accuracy || 0) };
+    $('gpsBtn').classList.add('hide');
+    $('gpsTxt').innerHTML = '✅ <b>ได้พิกัดแล้ว</b> (±' + S.gps.acc + ' ม.) — ส่งไปพร้อม Plan นี้';
+  }, () => { $('gpsBtn').textContent = '📍 ลองอีกครั้ง'; $('gpsTxt').textContent = 'เปิด GPS ไม่ได้ — อนุญาตตำแหน่งให้ LINE แล้วลองใหม่ หรือข้ามไปก่อน'; },
+  { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+};
+$('venue').addEventListener('change', renderGps);
+$('venueNew').addEventListener('input', renderGps);
+
 async function init() {
   S.lang = lsGet(LANG_KEY, null) || 'th';
   $('ver').textContent = 'v' + FORM_VERSION;
@@ -785,6 +823,7 @@ async function init() {
     S.profile = await liff.getProfile();
     S.idToken = liff.getIDToken();
     $('who').textContent = S.profile.displayName;
+    loadGpsDone();   // background: which venues already have a runner GPS
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');
     S.meta = await res.json();
