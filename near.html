@@ -61,12 +61,16 @@
   .pin{width:26px;height:26px;border-radius:50%;color:#fff;font:700 12px/20px system-ui;text-align:center;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .pin.guess{opacity:.75;border-style:dashed}
   .pin.sel{transform:scale(1.35);border-color:#2f6fde;box-shadow:0 0 0 3px rgba(47,111,222,.35),0 1px 4px rgba(0,0,0,.35)}
+  .tabs{display:flex;gap:4px;max-width:560px;margin:0 auto}
+  .tabs a{flex:1;text-align:center;text-decoration:none;color:#6b7280;font-size:11px;font-weight:600;line-height:1.15;padding:4px 0;border-radius:9px}
+  .tabs a b{display:block;font-size:18px;line-height:1.2}
+  .tabs a.on{color:#047a35;background:#e9f9ef}
+  .navbar{flex:none;background:#fff;border-top:1px solid var(--bd);padding:4px 8px calc(4px + env(safe-area-inset-bottom))}
   .ver{text-align:center;color:#b4b9c2;font-size:11px;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="bar">
-  <a class="back" href="index.html">← EOD</a>
   <div class="sbox">
     <input id="q" class="search" type="text" enterkeyhint="search" placeholder="ค้นหาสถานที่ใกล้เคียง" autocomplete="off">
     <button id="clr" class="clr hide" type="button" aria-label="ล้าง">✕</button>
@@ -92,9 +96,10 @@
   </div>
   <div class="ver" id="ver"></div>
 </div>
+<div class="navbar"><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>EOD</a><a href="near.html" class="on"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html"><b>📍</b>Venue lead</a></nav></div>
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.5';
+const FORM_VERSION = '2026-10-28.6';
 const API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
 const CAT_TH = { 'Construction and Hardware': 'ก่อสร้าง', 'Food and Beverage': 'อาหาร', 'Factory': 'โรงงาน', 'Industrial Manufacturing': 'การผลิต', 'Clothing and Fashion': 'เสื้อผ้า', 'Repair Services': 'ซ่อม', 'Automotive and Transport': 'รถยนต์', 'Beauty and Personal Care': 'ความงาม', 'Cleaning and Sanitation': 'ทำความสะอาด', 'Healthcare and Pharmacy': 'สุขภาพ/ยา', 'Laboratory / Scientific': 'แล็บ', 'Retail and Consumer Goods': 'ร้านค้า', 'Energy and Utilities': 'พลังงาน', 'Food Processing': 'แปรรูปอาหาร', 'Printing and Design': 'ป้าย/พิมพ์' };
 const $ = id => document.getElementById(id);
@@ -220,29 +225,52 @@ function locateMe() {
   });
 }
 
-// ---------- data: venues from the sheet; refresh = pull the latest now ----------
-async function loadVenues(fresh) {
-  const res = await fetch(API + '?a=venues' + (fresh ? '&fresh=1' : '') + '&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }).then(r => r.json());
-  if (!res.ok) throw new Error(res.error === 'not_runner' ? 'บัญชี LINE นี้ยังไม่อยู่ในรายชื่อรันเนอร์ — ติดต่อแอน' : res.error);
-  S.all = res.venues || []; S.at = res.at || Date.now();
+// ---------- data: venues from the sheet. Opens instantly from the last copy on this phone, then updates ----------
+const NC_KEY = 'near_cache_v1';
+function readCache() {
+  try { const c = JSON.parse(localStorage.getItem(NC_KEY) || 'null'); return c && c.v && c.v.length && Date.now() - c.t < 86400000 ? c : null; } catch (e) { return null; }
+}
+function writeCache() { try { localStorage.setItem(NC_KEY, JSON.stringify({ t: Date.now(), at: S.at, v: S.all, me: S.me, meT: S.meT })); } catch (e) { } }
+function applyVenues(list, at) {
+  S.all = list || []; S.at = at || Date.now();
   const cats = [...new Set(S.all.map(v => v.c).filter(Boolean))].sort((a, b) => catTh(a).localeCompare(catTh(b), 'th'));
   if (S.cat && cats.indexOf(S.cat) < 0) { S.cat = ''; $('fCat').classList.remove('on'); }
   $('fCat').innerHTML = '<option value="">ทุกประเภท</option>' + cats.map(c => `<option value="${esc(c)}">${esc(catTh(c))}</option>`).join('');
   $('fCat').value = S.cat;
 }
-$('rf').onclick = async () => {
+async function fetchVenues(fresh) {
+  const res = await fetch(API + '?a=venues' + (fresh ? '&fresh=1' : '') + '&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }).then(r => r.json());
+  if (!res.ok) throw new Error(res.error === 'not_runner' ? 'บัญชี LINE นี้ยังไม่อยู่ในรายชื่อรันเนอร์ — ติดต่อแอน' : res.error);
+  return res;
+}
+function showApp() { $('loading').classList.add('hide'); $('app').classList.remove('hide'); }
+// first = nothing on screen yet; fresh = refresh button (also pulls new runner GPS taps)
+async function reload(fresh, first) {
   if ($('rf').classList.contains('spin')) return;
   $('rf').classList.add('spin');
   try {
     const keep = S.origin && S.origin.self ? S.origin.self.n : null;
-    const [, me] = await Promise.all([loadVenues(true), locateMe()]);
-    if (me) S.me = me;
+    const openName = S.open >= 0 && S.ranked[S.open] ? S.ranked[S.open].v.n : null;
+    const [res, me] = await Promise.all([fetchVenues(fresh), locateMe()]);
+    applyVenues(res.venues, res.at);
+    if (me) { S.me = me; S.meT = Date.now(); }
+    else if (S.me && Date.now() - (S.meT || 0) > 2 * 3600000) S.me = null;   // old position from this phone: don't trust it
+    writeCache();
     const self = keep && S.all.find(v => v.n === keep && v.la != null);
-    S.origin = self ? { la: self.la, lo: self.lo, label: self.n, self } : (S.me || S.origin);
-    S.open = -1; S.viewKey = null; $('loading').classList.add('hide'); $('app').classList.remove('hide'); render();
-  } catch (e) { showGpsMsg('รีเฟรชไม่สำเร็จ: ' + esc(e.message || e)); }
+    S.origin = self ? { la: self.la, lo: self.lo, label: self.n, self } : (S.me || null);
+    showApp();
+    if (fresh) S.open = -1;
+    else { rank(); S.open = openName ? S.ranked.slice(0, S.shown).findIndex(x => x.v.n === openName) : -1; }
+    render();
+    if (!S.origin) { showGpsMsg('เปิดตำแหน่ง (GPS) ไม่ได้ — <b>พิมพ์ชื่อร้านด้านบน</b> เพื่อดูร้านที่อยู่ใกล้ร้านนั้น'); if (first) $('q').focus(); }
+    else if (!me && !keep) $('gpsMsg').classList.add('hide');
+  } catch (e) {
+    if (first) $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br>ปิดแล้วเปิดใหม่อีกครั้ง</div>';
+    else showGpsMsg('อัปเดตไม่สำเร็จ: ' + esc(e.message || e));
+  }
   $('rf').classList.remove('spin');
-};
+}
+$('rf').onclick = () => reload(true, false);
 
 // ---------- start ----------
 async function init() {
@@ -252,11 +280,13 @@ async function init() {
     if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
     const d = liff.getDecodedIDToken && liff.getDecodedIDToken();
     if (!d || !d.exp || d.exp * 1000 < Date.now() + 30000) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
-    const [, me] = await Promise.all([loadVenues(false), locateMe()]);
-    $('loading').classList.add('hide'); $('app').classList.remove('hide');
-    if (me) { S.me = me; useOrigin(me); }
-    else { render(); showGpsMsg('เปิดตำแหน่ง (GPS) ไม่ได้ — <b>พิมพ์ชื่อร้านด้านบน</b> เพื่อดูร้านที่อยู่ใกล้ร้านนั้น'); $('q').focus(); }
-  } catch (e) { $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br>ปิดแล้วเปิดใหม่อีกครั้ง</div>'; }
+  } catch (e) { $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br>ปิดแล้วเปิดใหม่อีกครั้ง</div>'; return; }
+  const c = readCache();
+  if (c) {   // show the last list right away; the fresh one replaces it in a few seconds
+    applyVenues(c.v, c.at); S.me = c.me || null; S.meT = c.meT || 0;
+    S.origin = S.me; showApp(); render();
+  }
+  reload(false, !c);
 }
 // screen size changed (keyboard, rotation): keep every pin in view
 window.addEventListener('resize', () => { if (S.map && S.pts) { S.map.invalidateSize(); S.map.fitBounds(S.pts, { padding: [24, 24], maxZoom: 15 }); } });
