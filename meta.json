@@ -419,6 +419,12 @@
    "l1": "Retail and Consumer Goods",
    "l2": "Department Store Distribution",
    "region": "Sakon Nakhon"
+  },
+  {
+   "name": "SC ราชฏัช",
+   "l1": "Construction and Hardware",
+   "l2": "Construction Site",
+   "region": "Sakon Nakhon"
   }
  ],
  "regions": [
