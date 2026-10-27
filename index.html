@@ -110,8 +110,20 @@
     <div class="card">
       <label for="region"><span data-i18n="region"></span> <span class="req">*</span></label>
       <select id="region"></select>
-      <label for="venue"><span data-i18n="venue"></span> <span class="req">*</span></label>
-      <select id="venue" required></select>
+      <label for="venueQ"><span data-i18n="venue"></span> <span class="req">*</span></label>
+      <div id="hereCard" class="hide" style="background:#e6f8ee;border:2px solid #06c755;border-radius:12px;padding:12px;margin-bottom:8px;text-align:center">
+        <div style="font-size:15px">📍 ตอนนี้คุณอยู่ที่</div>
+        <div id="hereName" style="font-size:18px;font-weight:700;margin:2px 0 10px"></div>
+        <div style="display:flex;gap:8px">
+          <button type="button" id="hereYes" style="flex:2;border:0;border-radius:10px;padding:12px;background:#06c755;color:#fff;font:inherit;font-weight:700;font-size:16px">ใช่ ร้านนี้</button>
+          <button type="button" id="hereNo" style="flex:1;border:1px solid #dfe2e6;border-radius:10px;padding:12px;background:#fff;font:inherit;font-size:15px">ไม่ใช่</button>
+        </div>
+      </div>
+      <div class="pk">
+        <input id="venueQ" class="search" autocomplete="off" placeholder="พิมพ์ชื่อสถานที่ (ใกล้สุดขึ้นก่อน)">
+        <div class="pick hide" id="venueList"></div>
+      </div>
+      <select id="venue" required class="hide"></select>
       <input id="venueNew" class="hide" data-i18n-ph="venueNewPh" style="margin-top:6px">
       <div id="gpsCard" class="hide" style="margin-top:10px;background:#eef4ff;border:2px solid #2f6fde;border-radius:12px;padding:12px;text-align:center">
         <div style="font-weight:700">📍 ร้านนี้ยังไม่มีพิกัดบนแผนที่</div>
@@ -199,7 +211,7 @@
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-27.2'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-28.2'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -389,6 +401,7 @@ function renderVenues() {
   html += `<option value="__new">${t('newVenue')}</option>`;
   $('venue').innerHTML = html;
   if (keep && [...$('venue').options].some(x => x.value === keep)) $('venue').value = keep;
+  syncVenueBox();
 }
 function setRegion(v) { $('region').innerHTML = opts((S.meta.regions || []).slice(), v); $('region').value = v || ''; }
 
@@ -599,7 +612,7 @@ function setType(tp) {
   document.querySelectorAll('#typeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === tp));
   $('hrsLbl').textContent = tp === 'Plan' ? t('hrsPlan') : t('hrsActual');
   $('transWrap').classList.toggle('hide', tp !== 'Actual');
-  renderGps();
+  renderGps(); if (typeof suggestHere === 'function') suggestHere();
   // Plan and Actual: operators, cameras (and camera hours) first, then the hours totals
   $('hrsCard').after($('totCard'));
   if (tp === 'Plan') $('hrs').value = $('hrs').readOnly ? '' : $('hrs').value;
@@ -654,7 +667,7 @@ function collect() {
 }
 
 // ---------- validation: red outline on each missing field, list at the top, jump to the first one ----------
-const fieldEl = { date: 'date', region: 'region', venue: 'venue', l1: 'l1', l2: 'l2', hrs: 'hrs', hard: 'hard', trans: 'trans', ops: 'ops', team: 'team', cams: 'chips', camh: 'camHrs' };
+const fieldEl = { date: 'date', region: 'region', venue: 'venueQ', l1: 'l1', l2: 'l2', hrs: 'hrs', hard: 'hard', trans: 'trans', ops: 'ops', team: 'team', cams: 'chips', camh: 'camHrs' };
 function clearBad(key) { const el = $(fieldEl[key] || key); if (el) el.classList.remove('bad'); }
 function clearAllBad() { Object.values(fieldEl).forEach(id => $(id) && $(id).classList.remove('bad')); $('errTop').classList.add('hide'); }
 function validate(silent) {
@@ -790,11 +803,14 @@ async function loadGpsDone() {
     const r = await fetch(NEAR_API + '?a=venues&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' }), j = await r.json();
     if (!j.ok) return;
     S.gpsDone = new Set(); j.venues.filter(v => v.g === 'gps').forEach(v => [v.n].concat(v.a || []).forEach(x => S.gpsDone.add(gpsKey(x))));
+    S.geo = {}; j.venues.filter(v => v.la != null).forEach(v => [v.n].concat(v.a || []).forEach(x => { if (!S.geo[gpsKey(x)]) S.geo[gpsKey(x)] = { la: v.la, lo: v.lo, g: v.g }; }));
+    suggestHere();
     renderGps();
   } catch (e) { }
 }
 function curVenue() { return $('venue').value === '__new' ? $('venueNew').value.trim() : $('venue').value; }
 function renderGps() {
+  syncVenueBox();
   const v = curVenue(), need = S.type === 'Plan' && !!v && !(S.gpsDone && S.gpsDone.has(gpsKey(v)));
   $('gpsCard').classList.toggle('hide', !need);
   if (need && !(S.gps && S.gps.venue === v)) { $('gpsBtn').classList.remove('hide'); $('gpsBtn').textContent = '📍 บันทึกพิกัดร้าน'; $('gpsTxt').textContent = ''; }
@@ -810,6 +826,65 @@ $('gpsBtn').onclick = () => {
   { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 };
 $('venue').addEventListener('change', renderGps);
+
+// ---------- venue box: type to search, nearest first; "you are at X?" on Plan ----------
+function kmTo(a, b) {
+  const R = 6371, r = x => x * Math.PI / 180, dLa = r(b.la - a.la), dLo = r(b.lo - a.lo);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.la)) * Math.cos(r(b.la)) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function venueDist(name) { const g = S.me && S.geo && S.geo[gpsKey(name)], d = g ? kmTo(S.me, g) : null; return d != null && d <= 100 ? d : null; }   // other regions: no distance
+function syncVenueBox() {
+  if (document.activeElement === $('venueQ')) return;
+  const v = $('venue').value; $('venueQ').value = v === '__new' ? t('newVenue') : v;
+}
+function pickVenue(name) {
+  $('venueList').classList.add('hide'); $('hereCard').classList.add('hide');
+  if (name !== '__new') {
+    const m = allVenues().find(x => x.name === name);
+    if (m && m.region && m.region !== $('region').value) { setRegion(m.region); clearBad('region'); }
+    renderVenues();
+  }
+  $('venue').value = name; $('venue').dispatchEvent(new Event('change'));
+  $('venueQ').blur(); syncVenueBox();
+}
+function showVenuePick() {
+  const q = norm($('venueQ').value), all = allVenues();
+  let rows = all.filter(v => !q || norm(v.name).includes(q)).map(v => ({ v, d: venueDist(v.name) }));
+  const reg = $('region').value;
+  rows.sort((a, b) => (a.d == null) - (b.d == null) || (a.d != null ? a.d - b.d : (b.v.region === reg) - (a.v.region === reg) || a.v.name.localeCompare(b.v.name)));
+  const near = rows.some(x => x.d != null && !q);
+  $('venueList').innerHTML = (near ? '<div class="sec">ใกล้คุณ</div>' : '') +
+    rows.slice(0, 8).map(x => `<button type="button" data-v="${esc(x.v.name)}">${esc(x.v.name)}<span class="en">${esc(x.v.region || '')}${x.d != null ? ' · ' + (x.d < 1 ? Math.round(x.d * 1000) + ' ม.' : x.d.toFixed(1) + ' กม.') : ''}</span></button>`).join('') +
+    (rows.length ? '' : '<div class="none">ไม่เจอ — เพิ่มเป็นสถานที่ใหม่ได้</div>') +
+    `<button type="button" data-v="__new" style="color:#047a35;font-weight:600">${t('newVenue')}</button>`;
+  $('venueList').classList.remove('hide');
+}
+$('venueQ').addEventListener('focus', () => { $('venueQ').value = ''; showVenuePick(); });   // empty box = nearest venues first
+$('venueQ').addEventListener('input', () => { clearBad('venue'); showVenuePick(); });
+$('venueQ').addEventListener('blur', () => setTimeout(() => { $('venueList').classList.add('hide'); syncVenueBox(); }, 200));
+$('venueList').addEventListener('mousedown', e => e.preventDefault());
+$('venueList').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) pickVenue(b.dataset.v); });
+function locateMeOnce() {
+  if (S.meAsked || !navigator.geolocation) return; S.meAsked = true;
+  navigator.geolocation.getCurrentPosition(p => { S.me = { la: p.coords.latitude, lo: p.coords.longitude, acc: Math.round(p.coords.accuracy || 0) }; suggestHere(); },
+    () => { }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+}
+function suggestHere() {   // Plan only: nearest known venue within ~200 m (or the GPS accuracy) is offered as one tap
+  if (!S.ready || S.type !== 'Plan' || !S.me || !S.geo || S.hereNo || $('venue').value) { $('hereCard').classList.add('hide'); return; }
+  let best = null;
+  allVenues().forEach(v => { const d = venueDist(v.name); if (d != null && (!best || d < best.d)) best = { v, d }; });
+  const lim = Math.max(0.2, Math.min(0.5, (S.me.acc || 0) * 1.5 / 1000));
+  if (!best || best.d > lim) { $('hereCard').classList.add('hide'); return; }
+  S.here = best.v.name; $('hereName').textContent = best.v.name; $('hereCard').classList.remove('hide');
+}
+$('hereYes').onclick = () => {
+  const name = S.here; pickVenue(name);
+  // the runner says they are standing there: their GPS becomes the venue's location if it has no runner GPS yet
+  if (S.me && S.me.acc <= 500) S.gps = { venue: name, lat: +S.me.la.toFixed(6), lng: +S.me.lo.toFixed(6), acc: S.me.acc };
+  renderGps(); if (S.gps && S.gps.venue === name) { $('gpsBtn').classList.add('hide'); $('gpsTxt').innerHTML = '✅ <b>ได้พิกัดแล้ว</b> — ส่งไปพร้อม Plan นี้'; }
+};
+$('hereNo').onclick = () => { S.hereNo = true; $('hereCard').classList.add('hide'); $('venueQ').focus(); };
 $('venueNew').addEventListener('input', renderGps);
 
 async function init() {
@@ -824,6 +899,7 @@ async function init() {
     S.idToken = liff.getIDToken();
     $('who').textContent = S.profile.displayName;
     loadGpsDone();   // background: which venues already have a runner GPS
+    locateMeOnce();  // background: for "you are at X?" and nearest-first venue search
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');
     S.meta = await res.json();
@@ -845,6 +921,7 @@ async function init() {
     if (q === 'Actual' || q === 'Plan') setType(q);
     restoreDraft();
     $('loading').classList.add('hide'); $('f').classList.remove('hide'); $('submit').disabled = false;
+    S.ready = true; syncVenueBox(); suggestHere();
   } catch (e) {
     $('loading').textContent = t('loadFail') + e.message;
   }
