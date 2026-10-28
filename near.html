@@ -66,6 +66,7 @@
   .tabs a b{display:block;font-size:18px;line-height:1.2}
   .tabs a.on{color:#047a35;background:#e9f9ef}
   .navbar{flex:none;background:#fff;border-top:1px solid var(--bd);padding:4px 8px calc(4px + env(safe-area-inset-bottom))}
+  .fitb{border:0;border-radius:8px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.3);padding:6px 10px;font:inherit;font-size:12px;font-weight:700;color:var(--blue)}
   .ver{text-align:center;color:#b4b9c2;font-size:11px;margin-top:12px}
 </style>
 </head>
@@ -99,7 +100,7 @@
 <div class="navbar"><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>EOD</a><a href="near.html" class="on"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html"><b>📍</b>Venue lead</a></nav></div>
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.6';
+const FORM_VERSION = '2026-10-28.7';
 const API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
 const CAT_TH = { 'Construction and Hardware': 'ก่อสร้าง', 'Food and Beverage': 'อาหาร', 'Factory': 'โรงงาน', 'Industrial Manufacturing': 'การผลิต', 'Clothing and Fashion': 'เสื้อผ้า', 'Repair Services': 'ซ่อม', 'Automotive and Transport': 'รถยนต์', 'Beauty and Personal Care': 'ความงาม', 'Cleaning and Sanitation': 'ทำความสะอาด', 'Healthcare and Pharmacy': 'สุขภาพ/ยา', 'Laboratory / Scientific': 'แล็บ', 'Retail and Consumer Goods': 'ร้านค้า', 'Energy and Utilities': 'พลังงาน', 'Food Processing': 'แปรรูปอาหาร', 'Printing and Design': 'ป้าย/พิมพ์' };
 const $ = id => document.getElementById(id);
@@ -177,9 +178,14 @@ function pinIcon(label, col, cls) {
 function drawMap(list) {
   if (!window.L) { $('map').classList.add('hide'); return; }
   if (!S.map) {
-    // locked in place: no drag, pinch or zoom, so the view never jumps or loses tiles
-    S.map = L.map('map', { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false, boxZoom: false, keyboard: false, tap: false });
+    // drag and pinch-zoom are on; tapping a venue never moves the map (only "ดูทั้งหมด" re-fits it)
+    S.map = L.map('map', { zoomControl: false, attributionControl: true, dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: false, boxZoom: false, keyboard: false });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(S.map);
+    L.control.zoom({ position: 'bottomright', zoomInTitle: 'ซูมเข้า', zoomOutTitle: 'ซูมออก' }).addTo(S.map);
+    const Fit = L.Control.extend({ options: { position: 'topright' }, onAdd() {
+      const b = L.DomUtil.create('button', 'fitb'); b.type = 'button'; b.textContent = '⤢ ดูทั้งหมด';
+      L.DomEvent.disableClickPropagation(b); b.onclick = () => fitAll(); return b; } });
+    S.map.addControl(new Fit());
   }
   if (S.layer) S.layer.remove();
   S.layer = L.layerGroup().addTo(S.map);
@@ -195,8 +201,9 @@ function drawMap(list) {
   // same view for the whole list; tapping a venue only highlights its pin
   const key = pts.map(p => p.join()).join('|');
   S.pts = pts;
-  setTimeout(() => { S.map.invalidateSize(); if (key !== S.viewKey) { S.viewKey = key; S.map.fitBounds(pts, { padding: [24, 24], maxZoom: 15 }); } }, 40);
+  setTimeout(() => { S.map.invalidateSize(); if (key !== S.viewKey) { S.viewKey = key; fitAll(); } }, 40);
 }
+function fitAll() { if (S.map && S.pts) S.map.fitBounds(S.pts, { padding: [24, 24], maxZoom: 15 }); }
 
 // ---------- search: switch the start point to a venue ----------
 function renderOpts() {
@@ -288,8 +295,8 @@ async function init() {
   }
   reload(false, !c);
 }
-// screen size changed (keyboard, rotation): keep every pin in view
-window.addEventListener('resize', () => { if (S.map && S.pts) { S.map.invalidateSize(); S.map.fitBounds(S.pts, { padding: [24, 24], maxZoom: 15 }); } });
+// screen size changed (keyboard, rotation): keep the map drawn correctly
+window.addEventListener('resize', () => { if (S.map) S.map.invalidateSize(); });
 init();
 </script>
 </body>
