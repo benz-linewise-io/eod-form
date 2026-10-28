@@ -431,6 +431,12 @@
    "l1": "Construction and Hardware",
    "l2": "Construction Site",
    "region": "Bangkok"
+  },
+  {
+   "name": "สถาบันโรคทรวงอก",
+   "l1": "Construction and Hardware",
+   "l2": "Electrician",
+   "region": "Bangkok"
   }
  ],
  "regions": [
