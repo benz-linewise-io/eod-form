@@ -216,7 +216,7 @@
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.6'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-28.8'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -808,6 +808,30 @@ async function submit() {
 
 // ---------- venue GPS on Plan: one tap per venue, puts it on the "Nearby venues" map (near.html) ----------
 const NEAR_API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
+
+// ---------- venue names + leads: private (LINE login check), not in the public meta.json ----------
+const PRIV_KEY = 'eod_priv_lists_v1';
+function privFetch_() {
+  return fetch(NEAR_API + '?a=meta&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' })
+    .then(r => r.json()).then(j => (j && j.ok ? j : null)).catch(() => null);
+}
+async function privLists_(p) {
+  const put = j => { S.meta.venues = j.venues || []; S.meta.leads = j.leads || []; };
+  const c = lsGet(PRIV_KEY, null);
+  if (c) {   // open instantly from this phone's copy, then refresh it in the background
+    put(c);
+    p.then(j => {
+      if (!j) return;
+      lsSet(PRIV_KEY, { venues: j.venues, leads: j.leads });
+      if (JSON.stringify([j.venues, j.leads]) !== JSON.stringify([c.venues, c.leads])) { put(j); privChanged_(); }
+    });
+    return;
+  }
+  const j = await p;
+  if (j) { put(j); lsSet(PRIV_KEY, { venues: j.venues, leads: j.leads }); }
+  S.meta.venues = S.meta.venues || []; S.meta.leads = S.meta.leads || [];
+}
+function privChanged_() { renderVenues(); suggestHere(); }
 function gpsKey(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9ก-๙]/g, ''); }
 async function loadGpsDone() {
   try {
@@ -910,6 +934,7 @@ async function init() {
     S.idToken = liff.getIDToken();
     $('who').textContent = S.profile.displayName;
     loadGpsDone();   // background: which venues already have a runner GPS
+    const privP = privFetch_();   // background: venue names (private)
     locateMeOnce();  // background: for "you are at X?" and nearest-first venue search
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');
@@ -925,6 +950,7 @@ async function init() {
     S.meta.l1s = S.meta.l1s || uniq((S.meta.l1l2 || []).map(x => x.l1));
     S.meta.l2s = S.meta.l2s || uniq((S.meta.l1l2 || []).map(x => x.l2));
     S.meta.l1th = S.meta.l1th || {}; S.meta.l2th = S.meta.l2th || {};
+    await privLists_(privP);
     $('date').value = bkkDate(0); markDateBtns();
     const lastRegion = lsGet(REGION_KEY, '');
     setRegion(S.meta.regions.indexOf(lastRegion) >= 0 ? lastRegion : ''); renderVenues(); renderTeams(); renderChips(); renderProblems(); setL('', '');

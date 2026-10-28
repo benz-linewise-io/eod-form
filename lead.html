@@ -208,7 +208,33 @@
 
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.6';
+const FORM_VERSION = '2026-10-28.8';
+const NEAR_API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+// ---------- venue names + leads: private (LINE login check), not in the public meta.json ----------
+const PRIV_KEY = 'eod_priv_lists_v1';
+function privFetch_() {
+  return fetch(NEAR_API + '?a=meta&t=' + encodeURIComponent(liff.getIDToken()), { credentials: 'omit' })
+    .then(r => r.json()).then(j => (j && j.ok ? j : null)).catch(() => null);
+}
+async function privLists_(p) {
+  const put = j => { S.meta.venues = j.venues || []; S.meta.leads = j.leads || []; };
+  const c = lsGet(PRIV_KEY, null);
+  if (c) {   // open instantly from this phone's copy, then refresh it in the background
+    put(c);
+    p.then(j => {
+      if (!j) return;
+      lsSet(PRIV_KEY, { venues: j.venues, leads: j.leads });
+      if (JSON.stringify([j.venues, j.leads]) !== JSON.stringify([c.venues, c.leads])) { put(j); privChanged_(); }
+    });
+    return;
+  }
+  const j = await p;
+  if (j) { put(j); lsSet(PRIV_KEY, { venues: j.venues, leads: j.leads }); }
+  S.meta.venues = S.meta.venues || []; S.meta.leads = S.meta.leads || [];
+}
+function privChanged_() { if ($('name').value.trim()) renderDup(); }
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // Region codes match the "Region" dropdown in the Venue Leads sheet
@@ -453,6 +479,7 @@ async function init() {
     S.profile = await liff.getProfile();
     S.idToken = liff.getIDToken();
     $('who').textContent = 'Venue Lead · ' + S.profile.displayName;
+    const privP = privFetch_();   // background: venue names + leads (private)
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');
     S.meta = await res.json();
@@ -461,6 +488,7 @@ async function init() {
       if (tried !== S.meta.formVersion) { try { sessionStorage.setItem('lead_ver_reload', S.meta.formVersion); } catch (e) { }
         const u = new URL(location.href); u.searchParams.set('v', S.meta.formVersion); location.replace(u.toString()); return; }
     }
+    await privLists_(privP);
     const q = new URLSearchParams(location.search).get('mode');
     setMode(q === 'info' ? 'VenueInfo' : 'Lead');
     restoreDraft();
