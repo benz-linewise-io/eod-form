@@ -216,7 +216,7 @@
 <script>
 // ====== CONFIG: fill these in (setupForm in the Sheet shows the two FORM_ values) ======
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.8'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
+const FORM_VERSION = '2026-10-28.9'; // bump on every release; Code.gs CFG.FORM_VERSION publishes the newest one in meta.json
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSftltvpUNho_xVKKSGknrkPdKkiZrtuvXSYnufQHAQjkWxItQ/formResponse';
 const FORM_ENTRY = 'entry.287169977';
 // =======================================================================================
@@ -884,12 +884,15 @@ function pickVenue(name) {
   $('venueQ').blur(); syncVenueBox();
 }
 function showVenuePick() {
-  const q = norm($('venueQ').value), all = allVenues();
-  let rows = all.filter(v => !q || norm(v.name).includes(q)).map(v => ({ v, d: venueDist(v.name) }));
-  const reg = $('region').value;
+  const q = norm($('venueQ').value), reg = $('region').value;
+  const hit = all => all.filter(v => !q || norm(v.name).includes(q));
+  // a region is chosen: only its venues (plus venues with no region); nothing found while typing: show other regions too
+  let pool = allVenues().filter(v => !reg || !v.region || v.region === reg), other = false;
+  if (reg && q && !hit(pool).length) { pool = allVenues(); other = true; }
+  let rows = hit(pool).map(v => ({ v, d: venueDist(v.name) }));
   rows.sort((a, b) => (a.d == null) - (b.d == null) || (a.d != null ? a.d - b.d : (b.v.region === reg) - (a.v.region === reg) || a.v.name.localeCompare(b.v.name)));
   const near = rows.some(x => x.d != null && !q);
-  $('venueList').innerHTML = (near ? '<div class="sec">ใกล้คุณ</div>' : '') +
+  $('venueList').innerHTML = (other ? '<div class="sec">ไม่เจอใน ' + esc(reg) + ' — ภาคอื่น</div>' : near ? '<div class="sec">ใกล้คุณ</div>' : '') +
     rows.slice(0, 8).map(x => `<button type="button" data-v="${esc(x.v.name)}">${esc(x.v.name)}<span class="en">${esc(x.v.region || '')}${x.d != null ? ' · ' + (x.d < 1 ? Math.round(x.d * 1000) + ' ม.' : x.d.toFixed(1) + ' กม.') : ''}</span></button>`).join('') +
     (rows.length ? '' : '<div class="none">ไม่เจอ — เพิ่มเป็นสถานที่ใหม่ได้</div>') +
     `<button type="button" data-v="__new" style="color:#047a35;font-weight:600">${t('newVenue')}</button>`;
