@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Venue Lead</title>
+<title>เพิ่มร้าน</title>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 
@@ -122,7 +122,7 @@
 <body>
 <main>
   <header>
-    <h1 id="who">Venue Lead</h1>
+    <h1 id="who">เพิ่มร้าน</h1>
   </header>
   <div id="loading" class="card">กำลังโหลด…</div>
   <div id="errTop" class="banner hide" role="alert"></div>
@@ -130,15 +130,15 @@
   <form id="f" class="hide" autocomplete="off">
     <div class="card">
       <div class="seg" id="modeSeg">
-        <button type="button" data-v="Lead" class="on">➕ สถานที่ใหม่</button>
-        <button type="button" data-v="VenueInfo">📝 เพิ่มข้อมูลสถานที่เดิม</button>
+        <button type="button" data-v="Lead" class="on">➕ ร้านใหม่</button>
+        <button type="button" data-v="VenueInfo">📝 เพิ่มข้อมูลร้านเดิม</button>
       </div>
       <div class="hint" id="modeHint"></div>
     </div>
 
     <!-- NEW VENUE -->
     <div class="card" id="nameCard">
-      <label for="name">ชื่อสถานที่ <span class="req">*</span></label>
+      <label for="name">ชื่อร้าน <span class="req">*</span></label>
       <div class="warn">⚠️ <b>พิมพ์ชื่อให้ถูกต้อง</b> ตามป้ายร้าน / Google Maps<br>ชื่อนี้ต้องตรงกับที่ใช้ในรายงาน EOD ทุกวัน — ใช้คิดค่า Finder's fee</div>
       <input id="name" placeholder="เช่น อู่สามชัยยนต์ (สาขาบางแค)">
       <div id="dupBox"></div>
@@ -148,24 +148,25 @@
     <!-- EXISTING VENUE -->
     <div class="card hide" id="pickCard">
       <div class="pk">
-        <label for="pickQ">เลือกสถานที่ <span class="req">*</span></label>
-        <input id="pickQ" class="search" placeholder="ค้นหาชื่อสถานที่">
+        <label for="pickQ">เลือกร้าน <span class="req">*</span></label>
+        <input id="pickQ" class="search" placeholder="ค้นหาชื่อร้าน">
         <div class="pick hide" id="pickList"></div>
       </div>
       <div id="picked" class="hide"></div>
+      <label class="tick" id="foundWrap"><input type="checkbox" id="foundIt"> <span><b>ฉันเป็นคนหาร้านนี้</b> (ฉันติดต่อร้านเอง — ใช้คิดค่าหาร้าน)</span></label>
     </div>
 
     <div class="card" id="whereCard">
       <div class="lbl">ภูมิภาค <span class="req">*</span></div>
       <div class="regs" id="regs"></div>
       <div id="l1Wrap" class="pk">
-        <label for="l1">ประเภทธุรกิจ (L1) <span class="req">*</span></label>
+        <label for="l1">ประเภทร้าน <span class="req">*</span></label>
         <input id="l1" class="search" autocomplete="off" placeholder="ค้นหา เช่น อาหาร, ซ่อม">
         <div class="pick hide" id="l1List"></div>
       </div>
       <label for="map">ตำแหน่ง <span class="req" id="mapReq">*</span></label>
       <input id="map" type="url" inputmode="url" placeholder="วางลิงก์ Google Maps">
-      <div class="gps"><button type="button" class="mini" id="gpsBtn">📍 ใช้ตำแหน่งปัจจุบัน</button><div class="hint" id="gpsTxt">กดเมื่ออยู่ที่สถานที่</div></div>
+      <div class="gps"><button type="button" class="mini" id="gpsBtn">📍 ใช้ตำแหน่งปัจจุบัน</button><div class="hint" id="gpsTxt">กดเมื่ออยู่ที่ร้าน</div></div>
     </div>
 
     <div class="card" id="contactCard">
@@ -190,7 +191,7 @@
     <div class="card">
       <label for="bizId">เลขนิติบุคคล / เลขผู้เสียภาษี (13 หลัก)</label>
       <input id="bizId" type="text" inputmode="numeric" maxlength="17" placeholder="ไม่บังคับ">
-      <div class="hint" id="bizHint">ถ้ามี ช่วยให้ตรวจสอบสถานที่ได้เร็วขึ้น</div>
+      <div class="hint" id="bizHint">ถ้ามี ช่วยให้ตรวจสอบร้านได้เร็วขึ้น</div>
       <label for="note">หมายเหตุ</label>
       <textarea id="note" placeholder="เช่น เจ้าของสะดวกวันเสาร์, ต้องโทรก่อนเข้า"></textarea>
     </div>
@@ -204,11 +205,11 @@
   </div>
   <div class="ver" id="ver"></div>
 </main>
-<div class="bar" id="bar"><button id="submit" type="button" disabled>ส่ง Venue Lead</button><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>EOD</a><a href="near.html"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html" class="on"><b>📍</b>Venue lead</a></nav></div>
+<div class="bar" id="bar"><button id="submit" type="button" disabled>ส่งร้านใหม่</button><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>รายงาน</a><a href="near.html"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html" class="on"><b>📍</b>เพิ่มร้าน</a></nav></div>
 
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.8';
+const FORM_VERSION = '2026-10-29.1';
 const NEAR_API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
 function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
@@ -269,7 +270,7 @@ function known() {
   return out;
 }
 function matches(q, n) { return known().map(k => ({ k, s: Math.max(sim(q, k.name), k.eod ? sim(q, k.eod) : 0, ...(k.alias || []).map(a => sim(q, a))) })).filter(o => o.s >= 0.45).sort((a, b) => b.s - a.s).slice(0, n || 4); }
-const STATUS_TH = { Lead: 'Lead', Contacted: 'ติดต่อแล้ว', Previewed: 'ดูสถานที่แล้ว', Booked: 'จองแล้ว', Filming: 'กำลังถ่าย', Done: 'ถ่ายเสร็จ', Dropped: 'ยกเลิก' };
+const STATUS_TH = { Lead: 'Lead', Contacted: 'ติดต่อแล้ว', Previewed: 'ดูร้านแล้ว', Booked: 'จองแล้ว', Filming: 'กำลังถ่าย', Done: 'ถ่ายเสร็จ', Dropped: 'ยกเลิก' };
 function statusTh(s) { return STATUS_TH[s] || s; }
 
 // ---------- mode ----------
@@ -280,8 +281,8 @@ function setMode(m) {
   $('nameCard').classList.toggle('hide', !isNew); $('pickCard').classList.toggle('hide', isNew);
   $('contactCard').classList.toggle('hide', !isNew); $('l1Wrap').classList.toggle('hide', !isNew);
   $('mapReq').classList.toggle('hide', !isNew);
-  $('modeHint').textContent = isNew ? 'สถานที่ที่ยังไม่เคยถ่าย / ยังไม่อยู่ในระบบ' : 'สถานที่ที่ถ่ายอยู่แล้ว — เพิ่มจำนวนพนักงาน, เลขนิติบุคคล, ตำแหน่ง';
-  $('submit').textContent = isNew ? 'ส่ง Venue Lead' : 'บันทึกข้อมูลสถานที่';
+  $('modeHint').textContent = isNew ? 'ร้านที่ยังไม่เคยถ่าย / ยังไม่อยู่ในระบบ' : 'ร้านที่ถ่ายอยู่แล้ว — เพิ่มจำนวนพนักงาน, เลขนิติบุคคล, ตำแหน่ง';
+  $('submit').textContent = isNew ? 'ส่งร้านใหม่' : 'บันทึกข้อมูลร้าน';
   showBanner(''); if (S.live) validate(true);
 }
 
@@ -305,12 +306,51 @@ $('dupBox').onclick = e => { // "this is the same place" -> switch to add-info f
 };
 
 // ---------- existing venue picker ----------
+// ---------- smart search (shared by ร้านใกล้ๆ, EOD and Venue lead): typos, partial words, other names, contact, phone, category, region ----------
+const SS = {
+  norm: s => String(s == null ? '' : s).toLowerCase().normalize('NFC').replace(/[่-๋็์ํ]/g, '').replace(/[^a-z0-9ก-๙]+/g, ' ').trim(),
+  tight: s => SS.norm(s).replace(/ /g, ''),
+  grams(t) { const a = new Set(); for (let i = 0; i < t.length - 1; i++) a.add(t.slice(i, i + 2)); if (!a.size && t) a.add(t); return a; },
+  dice(a, b) { const A = SS.grams(a), B = SS.grams(b); if (!A.size || !B.size) return 0; let n = 0; A.forEach(g => { if (B.has(g)) n++; }); return 2 * n / (A.size + B.size); },
+  // 0..1: how well the query matches one text
+  score(q, text) {
+    const tq = SS.tight(q), tf = SS.tight(text); if (!tq || !tf) return 0;
+    if (tf.includes(tq)) return tq.length < 2 ? 0.6 : 1;
+    const qw = SS.norm(q).split(' ').filter(Boolean), fw = SS.norm(text).split(' ').filter(Boolean);
+    let tot = 0;
+    for (const w of qw) {
+      let best = tf.includes(w) ? 1 : 0;
+      if (best < 1 && w.length >= 3) for (const f of fw) best = Math.max(best, SS.dice(w, f), SS.dice(w, f.slice(0, w.length + 1)));
+      if (best < 1 && w.length >= 3) for (let i = 0; i + w.length <= tf.length + 1; i++) best = Math.max(best, SS.dice(w, tf.slice(i, i + w.length + 1)));   // Thai has no spaces
+      tot += best;
+    }
+    return Math.max(0.92 * tot / qw.length, 0.92 * SS.dice(tq, tf));
+  },
+  // fields: [[text, weight, reason], ...]; returns {s, why} (why = '' when the name itself matched)
+  match(q, fields) {
+    let s = 0, why = '';
+    const digits = String(q).replace(/\D/g, '');
+    for (const [text, w, reason, isPhone] of fields) {
+      if (!text) continue;
+      const v = isPhone ? (digits.length >= 4 && String(text).replace(/\D/g, '').includes(digits) ? 1 : 0) : SS.score(q, text);
+      if (v * w > s) { s = v * w; why = reason || ''; }
+    }
+    return { s, why };
+  },
+  // list of {item, s, why}, best first, weak matches dropped
+  find(q, items, fieldsOf, min) {
+    if (!SS.tight(q)) return [];
+    return items.map(it => Object.assign({ item: it }, SS.match(q, fieldsOf(it)))).filter(x => x.s >= (min || 0.62)).sort((a, b) => b.s - a.s);
+  }
+};
+const knownFields = k => [[k.name, 1, ''], ...[k.eod].concat(k.alias || []).filter(a => a && a !== k.name).map(a => [a, 0.95, 'ชื่ออื่น: ' + a]),
+  [k.region + ' ' + regionTh(k.region), 0.6, 'ภาค ' + regionTh(k.region)]];
 function renderPick() {
   const q = $('pickQ').value.trim(), L = $('pickList');
-  let list = q ? matches(q, 8).map(o => o.k) : known().filter(k => !S.region || k.region === S.region).slice(0, 8);
-  if (q && !list.length) list = known().filter(k => [k.name].concat(k.alias || []).some(x => norm(x).indexOf(norm(q)) >= 0)).slice(0, 8);
-  L.innerHTML = list.length ? list.map((k, i) => '<button type="button" data-i="' + i + '">' + esc(k.name) + '<span class="en">' + esc(regionTh(k.region)) + ' · ' + esc(statusTh(k.status)) + '</span></button>').join('')
-    : '<div class="none">ไม่พบ — ถ้าเป็นที่ใหม่ ให้กด "สถานที่ใหม่" ด้านบน</div>';
+  const hits = q ? SS.find(q, known(), knownFields, 0.6).slice(0, 8) : known().filter(k => !S.region || k.region === S.region).slice(0, 8).map(k => ({ item: k, why: '' }));
+  const list = hits.map(x => x.item);
+  L.innerHTML = list.length ? hits.map((x, i) => '<button type="button" data-i="' + i + '">' + esc(x.item.name) + '<span class="en">' + (x.why ? '<b style="color:#2f6fde">' + esc(x.why) + '</b> · ' : '') + esc(regionTh(x.item.region)) + ' · ' + esc(statusTh(x.item.status)) + '</span></button>').join('')
+    : '<div class="none">ไม่พบ — ถ้าเป็นที่ใหม่ ให้กด "ร้านใหม่" ด้านบน</div>';
   L._list = list; L.classList.remove('hide');
 }
 function pick(k) {
@@ -364,7 +404,7 @@ function idDigits() { return $('bizId').value.replace(/\D/g, ''); }
 function idOk(d) { if (!/^\d{13}$/.test(d)) return false; let s = 0; for (let i = 0; i < 12; i++) s += +d[i] * (13 - i); return (11 - s % 11) % 10 === +d[12]; }
 $('bizId').oninput = () => {
   const d = idDigits(); bad('bizId', false);
-  $('bizHint').textContent = !d ? 'ถ้ามี ช่วยให้ตรวจสอบสถานที่ได้เร็วขึ้น' : d.length < 13 ? 'พิมพ์แล้ว ' + d.length + '/13 หลัก' : idOk(d) ? (d[0] === '0' ? '✓ เลขนิติบุคคลถูกต้อง' : '✓ เลขบัตรประชาชน (ร้านบุคคลธรรมดา) — เก็บเป็นความลับ') : '✗ เลขไม่ถูกต้อง ตรวจอีกครั้ง';
+  $('bizHint').textContent = !d ? 'ถ้ามี ช่วยให้ตรวจสอบร้านได้เร็วขึ้น' : d.length < 13 ? 'พิมพ์แล้ว ' + d.length + '/13 หลัก' : idOk(d) ? (d[0] === '0' ? '✓ เลขนิติบุคคลถูกต้อง' : '✓ เลขบัตรประชาชน (ร้านบุคคลธรรมดา) — เก็บเป็นความลับ') : '✗ เลขไม่ถูกต้อง ตรวจอีกครั้ง';
 };
 
 // ---------- validate / collect ----------
@@ -374,15 +414,15 @@ function validate(quiet) {
   const map = $('map').value.trim(), hasLoc = !!(S.lat || /^https?:\/\/\S+/.test(map));
   if (isNew) {
     const strong = $('dupBox')._hits && $('dupBox')._hits.length && $('dupBox')._hits[0].s >= 0.75;
-    mark('name', $('name').value.trim().length < 2, 'ชื่อสถานที่');
+    mark('name', $('name').value.trim().length < 2, 'ชื่อร้าน');
     if (strong && !$('notDup').checked) { err.push('ยืนยันว่าเป็นคนละที่ (หรือกด "ใช่ที่นี่")'); bad('notDupWrap', true); } else bad('notDupWrap', false);
-    mark('l1', !S.l1, 'ประเภทธุรกิจ (L1)');
+    mark('l1', !S.l1, 'ประเภทร้าน');
     mark('map', !hasLoc, 'ตำแหน่ง (ลิงก์ Maps หรือกดใช้ตำแหน่งปัจจุบัน)');
     mark('cName', !$('cName').value.trim(), 'ชื่อผู้ติดต่อ');
     mark('cPhone', !/^0\d{8,9}$/.test($('cPhone').value.replace(/\D/g, '')), 'เบอร์โทร (9–10 หลัก)');
     mark('workers', !(+$('workers').value >= 1), 'จำนวนคนทำงาน');
   } else {
-    mark('pickQ', !S.picked, 'เลือกสถานที่');
+    mark('pickQ', !S.picked, 'เลือกร้าน');
     if (map && !/^https?:\/\/\S+/.test(map)) mark('map', true, 'ลิงก์ Maps ไม่ถูกต้อง');
   }
   mark('regs', !S.region, 'ภูมิภาค');
@@ -400,16 +440,16 @@ function collect() {
     contact: isNew ? $('cName').value.trim() : '', phone: isNew ? $('cPhone').value.replace(/\D/g, '') : '',
     map: $('map').value.trim(), lat: S.lat, lng: S.lng,
     workers: isNew ? +$('workers').value : '', band: S.band, hours: isNew ? $('hours').value.trim() : '', rate: isNew ? $('rate').value.trim() : '',
-    bizId: idDigits(), note: $('note').value.trim(), notDuplicate: isNew && $('notDup').checked,
+    bizId: idDigits(), note: $('note').value.trim(), notDuplicate: isNew && $('notDup').checked, foundIt: !isNew && $('foundIt').checked,
   };
 }
 function mapUrl(r) { return r.map || (r.lat ? 'https://maps.google.com/?q=' + r.lat + ',' + r.lng : ''); }
 function message(r) { // goes to the LINE group: no phone, no ID number
-  return (r.type === 'Lead' ? '📍 Venue lead ใหม่' : '📝 อัปเดตข้อมูลสถานที่') + '\n' +
-    'สถานที่: ' + r.venue + '\nภูมิภาค: ' + regionTh(r.region) + (r.l1 ? '\nประเภท: ' + (l1th(r.l1) || r.l1) : '') +
+  return (r.type === 'Lead' ? '📍 ร้านใหม่' : '📝 อัปเดตข้อมูลร้าน') + '\n' +
+    'ร้าน: ' + r.venue + '\nภูมิภาค: ' + regionTh(r.region) + (r.l1 ? '\nประเภท: ' + (l1th(r.l1) || r.l1) : '') +
     (r.workers ? '\nคนทำงาน: ' + r.workers + ' คน' : '') + '\nพนักงานทั้งหมด: ' + bandShort(r.band) +
     (r.hours ? '\nเวลาทำงาน: ' + r.hours : '') + (r.rate ? '\nเรท: ' + r.rate + ' ฿/ชม.' : '') +
-    (mapUrl(r) ? '\nแผนที่: ' + mapUrl(r) : '') + (r.note ? '\nหมายเหตุ: ' + r.note : '') +
+    (mapUrl(r) ? '\nแผนที่: ' + mapUrl(r) : '') + (r.note ? '\nหมายเหตุ: ' + r.note : '') + (r.foundIt ? '\nผู้หาร้าน: ฉันเอง' : '') +
     '\nโดย: ' + (S.profile ? S.profile.displayName : '');
 }
 
@@ -424,7 +464,7 @@ function saveDraftAndReload() {
 function stashDraft() {
   const v = id => $(id).value;
   try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ mode: S.mode, name: v('name'), notDup: $('notDup').checked, region: S.region, l1: S.l1, map: v('map'), lat: S.lat, lng: S.lng,
-    cName: v('cName'), cPhone: v('cPhone'), workers: v('workers'), rate: v('rate'), hours: v('hours'), band: S.band, bizId: v('bizId'), note: v('note'), picked: S.picked && S.picked.name })); } catch (e) { }
+    cName: v('cName'), cPhone: v('cPhone'), workers: v('workers'), rate: v('rate'), hours: v('hours'), band: S.band, bizId: v('bizId'), note: v('note'), picked: S.picked && S.picked.name, foundIt: $('foundIt').checked })); } catch (e) { }
 }
 function restoreDraft() {
   let d = null;
@@ -438,6 +478,7 @@ function restoreDraft() {
   if (d.l1) { S.l1 = d.l1; $('l1').value = l1th(d.l1) || d.l1; }
   if (d.band) { S.band = d.band; [...$('bands').children].forEach(x => x.classList.toggle('on', x.dataset.v === d.band)); }
   if (d.picked) { const k = known().find(x => x.name === d.picked); if (k) pick(k); }
+  $('foundIt').checked = !!d.foundIt;
   renderDup(); $('bizId').oninput();
   let quiet = false; try { quiet = sessionStorage.getItem('lead_quiet') === '1'; sessionStorage.removeItem('lead_quiet'); } catch (e) { }
   if (!quiet) showBanner('<b>โหลดฟอร์มใหม่แล้ว</b> — ข้อมูลที่กรอกไว้ยังอยู่ ตรวจแล้วกดส่งอีกครั้ง');
@@ -467,18 +508,30 @@ async function submit() {
     $('doneNote').textContent = posted ? 'ส่งเข้ากลุ่ม LINE และบันทึกในชีต Venue Leads แล้ว' : 'บันทึกในชีต Venue Leads แล้ว (เปิดจากในกลุ่ม LINE เพื่อโพสต์ในกลุ่มด้วย)';
   } catch (e) {
     showBanner('<b>ส่งไม่สำเร็จ</b> — ตรวจอินเทอร์เน็ตแล้วกดส่งอีกครั้ง');
-    btn.disabled = false; btn.textContent = S.mode === 'Lead' ? 'ส่ง Venue Lead' : 'บันทึกข้อมูลสถานที่';
+    btn.disabled = false; btn.textContent = S.mode === 'Lead' ? 'ส่งร้านใหม่' : 'บันทึกข้อมูลร้าน';
   }
 }
 
+// opened on a computer outside LINE: say so instead of a blank page; still loading after 15 s: say so with a retry button
+const DASH_VENUES_URL = 'https://script.google.com/macros/s/AKfycbxmKb2SvatMYAvJmw2lXwWRp4rYGURmroHaNkPxjkB_atiKxxBgYw35wJQRGjr0ybAN/exec?page=venues';
+function desktopNote() {
+  $('loading').innerHTML = '<b>หน้านี้ใช้ในแอป LINE บนมือถือ</b><br>เปิดจากลิงก์ในกลุ่ม LINE ของทีม' +
+    '<br><br>ทีมงานออฟฟิศ: ดูแผนที่ร้านบนคอมพิวเตอร์ได้ที่ <a href="' + DASH_VENUES_URL + '" target="_top">Dashboard → ร้านทั้งหมด</a>';
+}
+setTimeout(() => {
+  const L = $('loading');
+  if (L && !L.classList.contains('hide') && !/LINE|ไม่สำเร็จ/.test(L.textContent))
+    L.innerHTML = 'โหลดนานผิดปกติ — สัญญาณอาจไม่ดี<br><button type="button" onclick="location.reload()" style="margin-top:8px;padding:8px 16px;border-radius:8px;border:1px solid #ccc;background:#fff;font:inherit">ลองใหม่</button>';
+}, 15000);
 async function init() {
   $('ver').textContent = 'v' + FORM_VERSION;
   try {
     await liff.init({ liffId: LIFF_ID });
+    if (!liff.isInClient() && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) && !liff.isLoggedIn()) { desktopNote(); return; }
     if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
     S.profile = await liff.getProfile();
     S.idToken = liff.getIDToken();
-    $('who').textContent = 'Venue Lead · ' + S.profile.displayName;
+    $('who').textContent = 'เพิ่มร้าน · ' + S.profile.displayName;
     const privP = privFetch_();   // background: venue names + leads (private)
     const res = await fetch('meta.json?v=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('meta.json not found');

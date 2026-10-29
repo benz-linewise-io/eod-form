@@ -67,13 +67,16 @@
   .tabs a.on{color:#047a35;background:#e9f9ef}
   .navbar{flex:none;background:#fff;border-top:1px solid var(--bd);padding:4px 8px calc(4px + env(safe-area-inset-bottom))}
   .fitb{border:0;border-radius:8px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.3);padding:6px 10px;font:inherit;font-size:12px;font-weight:700;color:var(--blue)}
+  .sec{font-size:12px;font-weight:700;color:var(--mut);margin:8px 2px 4px}
+  .card.pin-card{border-color:#e5484d;box-shadow:0 0 0 2px rgba(229,72,77,.15)}
+  .why{color:var(--blue);font-weight:600}
   .ver{text-align:center;color:#b4b9c2;font-size:11px;margin-top:12px}
 </style>
 </head>
 <body>
 <div class="bar">
   <div class="sbox">
-    <input id="q" class="search" type="text" enterkeyhint="search" placeholder="ค้นหาสถานที่ใกล้เคียง" autocomplete="off">
+    <input id="q" class="search" type="text" enterkeyhint="search" placeholder="ค้นหาร้าน ชื่อ / เบอร์ / ผู้ติดต่อ" autocomplete="off">
     <button id="clr" class="clr hide" type="button" aria-label="ล้าง">✕</button>
     <div id="opts" class="opts hide"></div>
   </div>
@@ -81,7 +84,7 @@
 </div>
 <div class="sub">
   <span class="from">📍 <span id="fromTxt">กำลังหาตำแหน่ง…</span></span>
-  <button id="meBtn" type="button" class="pill me hide">ใกล้ฉัน</button>
+  <button id="meBtn" type="button" class="pill me hide">กลับมาที่ฉัน</button>
   <button id="fFilmed" type="button" class="pill">✓ เคยถ่าย</button>
   <select id="fCat" class="pill"><option value="">ทุกประเภท</option></select>
 </div>
@@ -93,14 +96,14 @@
     <div id="list"></div>
     <div id="count" class="count"></div>
     <button id="more" type="button" class="more hide">ดูเพิ่มอีก 5 ร้าน ↓</button>
-    <div class="mini" style="text-align:center;margin-top:8px">ระยะเป็นเส้นตรง · ≈ = ตำแหน่งโดยประมาณ</div>
+    <div class="mini" style="text-align:center;margin-top:8px">ระยะเป็นเส้นตรง · "ประมาณ" = ตำแหน่งร้านยังไม่แน่นอน</div>
   </div>
   <div class="ver" id="ver"></div>
 </div>
-<div class="navbar"><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>EOD</a><a href="near.html" class="on"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html"><b>📍</b>Venue lead</a></nav></div>
+<div class="navbar"><nav class="tabs" id="tabs"><a href="index.html"><b>📝</b>รายงาน</a><a href="near.html" class="on"><b>🗺️</b>ร้านใกล้ๆ</a><a href="lead.html"><b>📍</b>เพิ่มร้าน</a></nav></div>
 <script>
 const LIFF_ID = '2011743278-31NUxIDC';
-const FORM_VERSION = '2026-10-28.7';
+const FORM_VERSION = '2026-10-29.1';
 const API = 'https://script.google.com/macros/s/AKfycbwFSWa2kZCuXUNHDI-4ekG0FQTlZLyNfKof306__WXHbqbEAUnupRMWnzuMMbtnwIR34w/exec';
 const CAT_TH = { 'Construction and Hardware': 'ก่อสร้าง', 'Food and Beverage': 'อาหาร', 'Factory': 'โรงงาน', 'Industrial Manufacturing': 'การผลิต', 'Clothing and Fashion': 'เสื้อผ้า', 'Repair Services': 'ซ่อม', 'Automotive and Transport': 'รถยนต์', 'Beauty and Personal Care': 'ความงาม', 'Cleaning and Sanitation': 'ทำความสะอาด', 'Healthcare and Pharmacy': 'สุขภาพ/ยา', 'Laboratory / Scientific': 'แล็บ', 'Retail and Consumer Goods': 'ร้านค้า', 'Energy and Utilities': 'พลังงาน', 'Food Processing': 'แปรรูปอาหาร', 'Printing and Design': 'ป้าย/พิมพ์' };
 const $ = id => document.getElementById(id);
@@ -118,6 +121,45 @@ function km(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 const norm = s => String(s || '').toLowerCase().replace(/[่-๋็์]/g, '').replace(/[^a-z0-9ก-๙]/g, '');
+// ---------- smart search (shared by ร้านใกล้ๆ, EOD and Venue lead): typos, partial words, other names, contact, phone, category, region ----------
+const SS = {
+  norm: s => String(s == null ? '' : s).toLowerCase().normalize('NFC').replace(/[่-๋็์ํ]/g, '').replace(/[^a-z0-9ก-๙]+/g, ' ').trim(),
+  tight: s => SS.norm(s).replace(/ /g, ''),
+  grams(t) { const a = new Set(); for (let i = 0; i < t.length - 1; i++) a.add(t.slice(i, i + 2)); if (!a.size && t) a.add(t); return a; },
+  dice(a, b) { const A = SS.grams(a), B = SS.grams(b); if (!A.size || !B.size) return 0; let n = 0; A.forEach(g => { if (B.has(g)) n++; }); return 2 * n / (A.size + B.size); },
+  // 0..1: how well the query matches one text
+  score(q, text) {
+    const tq = SS.tight(q), tf = SS.tight(text); if (!tq || !tf) return 0;
+    if (tf.includes(tq)) return tq.length < 2 ? 0.6 : 1;
+    const qw = SS.norm(q).split(' ').filter(Boolean), fw = SS.norm(text).split(' ').filter(Boolean);
+    let tot = 0;
+    for (const w of qw) {
+      let best = tf.includes(w) ? 1 : 0;
+      if (best < 1 && w.length >= 3) for (const f of fw) best = Math.max(best, SS.dice(w, f), SS.dice(w, f.slice(0, w.length + 1)));
+      if (best < 1 && w.length >= 3) for (let i = 0; i + w.length <= tf.length + 1; i++) best = Math.max(best, SS.dice(w, tf.slice(i, i + w.length + 1)));   // Thai has no spaces
+      tot += best;
+    }
+    return Math.max(0.92 * tot / qw.length, 0.92 * SS.dice(tq, tf));
+  },
+  // fields: [[text, weight, reason], ...]; returns {s, why} (why = '' when the name itself matched)
+  match(q, fields) {
+    let s = 0, why = '';
+    const digits = String(q).replace(/\D/g, '');
+    for (const [text, w, reason, isPhone] of fields) {
+      if (!text) continue;
+      const v = isPhone ? (digits.length >= 4 && String(text).replace(/\D/g, '').includes(digits) ? 1 : 0) : SS.score(q, text);
+      if (v * w > s) { s = v * w; why = reason || ''; }
+    }
+    return { s, why };
+  },
+  // list of {item, s, why}, best first, weak matches dropped
+  find(q, items, fieldsOf, min) {
+    if (!SS.tight(q)) return [];
+    return items.map(it => Object.assign({ item: it }, SS.match(q, fieldsOf(it)))).filter(x => x.s >= (min || 0.62)).sort((a, b) => b.s - a.s);
+  }
+};
+const vFields = v => [[v.n, 1, ''], ...(v.a || []).map(a => [a, 0.95, 'ชื่ออื่น: ' + a]), [v.k, 0.85, 'ผู้ติดต่อ: ' + v.k], [v.ph, 0.9, 'เบอร์ ' + v.ph, true],
+  [catTh(v.c) + ' ' + (v.c || ''), 0.7, 'ประเภท: ' + catTh(v.c)], [v.r, 0.6, 'ภาค ' + v.r]];
 
 // ---------- ranking + list ----------
 function rank() {
@@ -126,35 +168,42 @@ function rank() {
     .map(v => ({ v, d: km(o, v) })).filter(x => x.d <= 100)   // other regions are not a backup
     .sort((a, b) => Math.abs(a.d - b.d) < 0.3 ? (stat(b.v.s).done ? 1 : 0) - (stat(a.v.s).done ? 1 : 0) || a.d - b.d : a.d - b.d);
 }
-function render() {
-  rank();
-  const list = S.ranked.slice(0, S.shown);
-  $('fromTxt').textContent = S.origin ? (S.origin.self ? 'ใกล้ร้าน ' + S.origin.label : 'ใกล้ตำแหน่งของฉัน') : 'ยังไม่มีตำแหน่ง';
-  $('meBtn').classList.toggle('hide', !(S.origin && S.origin.self && S.me));
-  $('list').innerHTML = list.length ? list.map((x, i) => {
-    const v = x.v, st = stat(v.s), open = i === S.open, approx = v.g === 'guess' ? '≈ ' : '';
-    const body = !open ? '' : `<div class="body">
+function cardHtml(v, key, d, open, pin) {
+  const st = stat(v.s), approx = v.g === 'guess' ? '<small>ประมาณ </small>' : '<small>ห่าง </small>', noLoc = v.la == null;
+  const body = !open ? '' : `<div class="body">
       ${v.k ? '<div>👤 ' + esc(v.k) + '</div>' : ''}
       ${v.d ? '<div>🗓️ ' + esc(v.d) + '</div>' : ''}
-      ${v.h ? '<div>✅ ถ่ายผ่าน QC แล้ว ' + v.h.toFixed(1) + ' ชม.' + (v.hd ? ' · Hard ' + esc(v.hd) : '') + '</div>' : ''}
+      ${v.h ? '<div>✅ ถ่ายแล้ว (ผ่านตรวจ) ' + v.h.toFixed(1) + ' ชม.' + (v.hd ? ' · งานยาก ' + esc(v.hd) : '') + '</div>' : ''}
       ${v.note ? '<div class="mini">📝 ' + esc(v.note) + '</div>' : ''}
-      ${v.g === 'guess' ? '<div class="mini">≈ ตำแหน่งโดยประมาณ — โทรถามทางก่อนไป</div>' : ''}
+      ${noLoc ? '<div class="mini">ยังไม่มีตำแหน่งบนแผนที่ — โทรถามทางก่อนไป</div>' : v.g === 'guess' ? '<div class="mini">📍 ตำแหน่งโดยประมาณ — โทรถามทางก่อนไป</div>' : ''}
       <div class="acts">
         ${v.ph ? `<a class="btn b-green" href="tel:${esc(v.ph)}">📞 โทร</a>` : '<span class="btn b-off">ไม่มีเบอร์</span>'}
-        <button type="button" class="btn b-white" data-nav="${i}">🧭 นำทาง</button>
+        ${noLoc ? '<span class="btn b-off">ยังนำทางไม่ได้</span>' : `<button type="button" class="btn b-white" data-nav="${key}">🧭 นำทาง</button>`}
       </div></div>`;
-    return `<div class="card${open ? ' open' : ''}" id="c${i}"><button type="button" class="head" data-i="${i}">
-      <span class="num" style="background:${st.col}">${i + 1}</span>
-      <span class="mid"><b>${esc(v.n)}</b><span class="mini"><span class="st ${st.cls}">${st.th}</span>${esc(catTh(v.c))}</span></span>
-      <span class="km">${approx}${x.d < 10 ? x.d.toFixed(1) : Math.round(x.d)}<small> กม.</small></span><span class="chev">▾</span></button>${body}</div>`;
-  }).join('') : (S.filmed || S.cat ? '<div class="msg">ไม่มีร้านตรงกับตัวกรอง — ลองปิดตัวกรอง</div>' : '<div class="msg">ยังไม่มีร้านที่มีพิกัดในระยะ 100 กม.</div>');
-  $('count').textContent = (S.ranked.length ? 'แสดง ' + list.length + ' จาก ' + S.ranked.length + ' ร้าน · ใกล้สุดอยู่บน' : '') + (S.at ? ' · อัปเดต ' + new Date(S.at).toTimeString().slice(0, 5) : '');
+  return `<div class="card${open ? ' open' : ''}${pin ? ' pin-card' : ''}" id="c${key}"><button type="button" class="head" data-i="${key}">
+      <span class="num" style="background:${pin ? '#e5484d' : st.col}">${pin ? '★' : key + 1}</span>
+      <span class="mid"><b>${esc(v.n)}</b><span class="mini"><span class="st ${st.cls}">${st.th}</span>${esc(catTh(v.c))}${pin ? ' · ร้านที่ค้นหา' : ''}</span></span>
+      <span class="km">${noLoc ? '<small>ไม่มีตำแหน่ง</small>' : d == null ? '' : approx + (d < 10 ? d.toFixed(1) : Math.round(d)) + '<small> กม.</small>'}</span><span class="chev">▾</span></button>${body}</div>`;
+}
+function render() {
+  rank();
+  const list = S.ranked.slice(0, S.shown), pin = S.pin;
+  $('fromTxt').textContent = S.origin ? (S.origin.self ? 'ใกล้ร้าน ' + S.origin.label : 'ใกล้คุณ') : 'กำลังหาตำแหน่ง…';
+  $('meBtn').classList.toggle('hide', !pin);
+  const pinHtml = pin ? cardHtml(pin, 'P', pin.la != null && S.me ? km(S.me, pin) : null, S.pinOpen, true)
+    + (list.length ? `<div class="sec">${pin.la != null ? 'ร้านใกล้ร้านนี้' : 'ร้านใกล้ตัวคุณ'}</div>` : '') : '';
+  $('list').innerHTML = pinHtml + (list.length ? list.map((x, i) => cardHtml(x.v, i, x.d, i === S.open, false)).join('')
+    : !S.origin ? '<div class="msg">กำลังหาตำแหน่งของคุณ… ถ้าไม่ขึ้น ให้พิมพ์ชื่อร้านด้านบน</div>'
+    : (S.filmed || S.cat ? '<div class="msg">ไม่มีร้านตรงกับตัวกรอง — ลองปิดตัวกรอง</div>' : '<div class="msg">ไม่มีร้านที่มีตำแหน่งในระยะ 100 กม.</div>'));
+  $('count').textContent = (S.ranked.length ? 'แสดง ' + list.length + ' จาก ' + S.ranked.length + ' ร้าน · ใกล้สุดอยู่บน' : '') + (S.at ? ' · ข้อมูลเมื่อ ' + new Date(S.at).toTimeString().slice(0, 5) : '');
   $('more').classList.toggle('hide', S.shown >= S.ranked.length);
   drawMap(list);
 }
 $('list').onclick = e => {
-  const nav = e.target.closest('[data-nav]'); if (nav) { navigate(S.ranked[+nav.dataset.nav].v); return; }
+  const nav = e.target.closest('[data-nav]');
+  if (nav) { navigate(nav.dataset.nav === 'P' ? S.pin : S.ranked[+nav.dataset.nav].v); return; }
   const h = e.target.closest('.head'); if (!h) return;
+  if (h.dataset.i === 'P') { S.pinOpen = !S.pinOpen; render(); return; }
   const i = +h.dataset.i; S.open = S.open === i ? -1 : i; render();
   if (S.open >= 0) showCard(i);
 };
@@ -207,28 +256,30 @@ function fitAll() { if (S.map && S.pts) S.map.fitBounds(S.pts, { padding: [24, 2
 
 // ---------- search: switch the start point to a venue ----------
 function renderOpts() {
-  const q = norm($('q').value); $('clr').classList.toggle('hide', !$('q').value);
-  if (!q) { $('opts').classList.add('hide'); return; }
-  const hits = S.all.filter(v => [v.n].concat(v.a || []).some(x => norm(x).includes(q))).slice(0, 7);
-  $('opts').innerHTML = hits.length ? hits.map(v => `<button type="button" class="opt" data-i="${S.all.indexOf(v)}"><b>${esc(v.n)}</b><span class="mini">${esc(catTh(v.c))}${v.c ? ' · ' : ''}${esc(v.r)}${v.la == null ? ' · ยังไม่มีพิกัด' : ''}</span></button>`).join('')
-    : '<div class="opt mini">ไม่เจอร้านนี้ — ลองพิมพ์สั้นลง</div>';
+  const q = $('q').value; $('clr').classList.toggle('hide', !q);
+  if (!SS.tight(q)) { $('opts').classList.add('hide'); return; }
+  const hits = SS.find(q, S.all, vFields).slice(0, 8);
+  $('opts').innerHTML = hits.length ? hits.map(x => { const v = x.item; return `<button type="button" class="opt" data-i="${S.all.indexOf(v)}"><b>${esc(v.n)}</b><span class="mini">${x.why ? '<span class="why">' + esc(x.why) + '</span> · ' : ''}${esc(catTh(v.c))}${v.c ? ' · ' : ''}${esc(v.r)}${v.la == null ? ' · ยังไม่มีตำแหน่ง' : ''}</span></button>`; }).join('')
+    : '<div class="opt mini">ไม่เจอ — ลองพิมพ์คำสั้นลง หรือชื่อผู้ติดต่อ / เบอร์โทร</div>';
   $('opts').classList.remove('hide');
 }
 $('q').oninput = renderOpts;
-$('clr').onclick = () => { $('q').value = ''; renderOpts(); if (S.me) useOrigin(S.me); };
+$('q').onkeydown = e => { if (e.key === 'Enter') { const b = $('opts').querySelector('button.opt'); if (b) b.click(); } };
+function clearPin() { S.pin = null; $('q').value = ''; $('clr').classList.add('hide'); $('opts').classList.add('hide'); useOrigin(S.me); }
+$('clr').onclick = clearPin;
 $('opts').onclick = e => {
   const b = e.target.closest('button.opt'); if (!b) return;
   const v = S.all[+b.dataset.i]; $('opts').classList.add('hide'); $('q').blur(); $('q').value = v.n; $('clr').classList.remove('hide');
-  if (v.la == null) { showGpsMsg('ร้าน <b>' + esc(v.n) + '</b> ยังไม่มีพิกัด — แสดงร้านใกล้ตำแหน่งของคุณแทน'); return; }
-  useOrigin({ la: v.la, lo: v.lo, label: v.n, self: v });
+  S.pin = v; S.pinOpen = true;
+  useOrigin(v.la != null ? { la: v.la, lo: v.lo, label: v.n, self: v } : S.me);   // no location yet: its card on top, then venues near you
 };
-$('meBtn').onclick = () => { $('q').value = ''; $('clr').classList.add('hide'); if (S.me) useOrigin(S.me); };
+$('meBtn').onclick = clearPin;
 function useOrigin(o) { S.origin = o; S.shown = 5; S.open = -1; $('gpsMsg').classList.add('hide'); render(); $('scroll').scrollTop = 0; }
 function showGpsMsg(html) { $('gpsMsg').innerHTML = html; $('gpsMsg').classList.remove('hide'); }
 function locateMe() {
   return new Promise(res => {
     if (!navigator.geolocation) return res(null);
-    navigator.geolocation.getCurrentPosition(p => res({ la: p.coords.latitude, lo: p.coords.longitude, self: null }), () => res(null), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+    navigator.geolocation.getCurrentPosition(p => res({ la: p.coords.latitude, lo: p.coords.longitude, self: null }), () => res(null), { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
   });
 }
 
@@ -251,39 +302,55 @@ async function fetchVenues(fresh) {
   return res;
 }
 function showApp() { $('loading').classList.add('hide'); $('app').classList.remove('hide'); }
-// first = nothing on screen yet; fresh = refresh button (also pulls new runner GPS taps)
+// re-draw after new data, keeping the opened card if it is still in the list
+function rerender() {
+  const openName = S.open >= 0 && S.ranked[S.open] ? S.ranked[S.open].v.n : null;
+  if (S.pin) S.pin = S.all.find(v => v.n === S.pin.n) || S.pin;
+  if (S.pin && S.pin.la != null) S.origin = { la: S.pin.la, lo: S.pin.lo, label: S.pin.n, self: S.pin };
+  else S.origin = S.me || null;
+  rank(); S.open = openName ? S.ranked.slice(0, S.shown).findIndex(x => x.v.n === openName) : -1;
+  render();
+}
+// first = nothing on screen yet; fresh = refresh button (also pulls new runner GPS taps). Venues and GPS arrive separately.
 async function reload(fresh, first) {
   if ($('rf').classList.contains('spin')) return;
   $('rf').classList.add('spin');
-  try {
-    const keep = S.origin && S.origin.self ? S.origin.self.n : null;
-    const openName = S.open >= 0 && S.ranked[S.open] ? S.ranked[S.open].v.n : null;
-    const [res, me] = await Promise.all([fetchVenues(fresh), locateMe()]);
-    applyVenues(res.venues, res.at);
-    if (me) { S.me = me; S.meT = Date.now(); }
+  if (fresh) S.open = -1;
+  const gps = locateMe().then(me => {
+    if (me) { S.me = me; S.meT = Date.now(); writeCache(); }
     else if (S.me && Date.now() - (S.meT || 0) > 2 * 3600000) S.me = null;   // old position from this phone: don't trust it
-    writeCache();
-    const self = keep && S.all.find(v => v.n === keep && v.la != null);
-    S.origin = self ? { la: self.la, lo: self.lo, label: self.n, self } : (S.me || null);
-    showApp();
-    if (fresh) S.open = -1;
-    else { rank(); S.open = openName ? S.ranked.slice(0, S.shown).findIndex(x => x.v.n === openName) : -1; }
-    render();
-    if (!S.origin) { showGpsMsg('เปิดตำแหน่ง (GPS) ไม่ได้ — <b>พิมพ์ชื่อร้านด้านบน</b> เพื่อดูร้านที่อยู่ใกล้ร้านนั้น'); if (first) $('q').focus(); }
-    else if (!me && !keep) $('gpsMsg').classList.add('hide');
+    if (S.all.length) { showApp(); rerender(); }
+    if (!S.me && !S.pin) showGpsMsg('เปิดตำแหน่ง (GPS) ไม่ได้ — <b>พิมพ์ชื่อร้านด้านบน</b> เพื่อดูร้านที่อยู่ใกล้ร้านนั้น');
+    else $('gpsMsg').classList.add('hide');
+  });
+  try {
+    const res = await fetchVenues(fresh);
+    applyVenues(res.venues, res.at); writeCache(); showApp(); rerender();
   } catch (e) {
-    if (first) $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br>ปิดแล้วเปิดใหม่อีกครั้ง</div>';
-    else showGpsMsg('อัปเดตไม่สำเร็จ: ' + esc(e.message || e));
+    if (first) $('loading').innerHTML = '<div class="msg err">โหลดไม่สำเร็จ: ' + esc(e.message || e) + '<br><button type="button" class="more" onclick="location.reload()">ลองใหม่</button></div>';
+    else showGpsMsg('อัปเดตไม่สำเร็จ: ' + esc(e.message || e) + ' — กด ↻ อีกครั้ง');
   }
+  await gps;
   $('rf').classList.remove('spin');
 }
 $('rf').onclick = () => reload(true, false);
 
 // ---------- start ----------
+// opened on a computer outside LINE: say so instead of a blank page
+const DASH_VENUES_URL = 'https://script.google.com/macros/s/AKfycbxmKb2SvatMYAvJmw2lXwWRp4rYGURmroHaNkPxjkB_atiKxxBgYw35wJQRGjr0ybAN/exec?page=venues';
+function desktopNote() {
+  $('loading').innerHTML = '<div class="msg"><b>หน้านี้ใช้ในแอป LINE บนมือถือ</b><br>เปิดจากเมนูในกลุ่ม LINE ของทีม' +
+    '<br><br>ทีมงานออฟฟิศ: ดูแผนที่ร้านบนคอมพิวเตอร์ได้ที่ <a href="' + DASH_VENUES_URL + '" target="_top">Dashboard → ร้านทั้งหมด</a></div>';
+}
+setTimeout(() => {   // still loading after 12 s: say so, with a retry button
+  if (!$('loading').classList.contains('hide') && !/msg/.test($('loading').innerHTML))
+    $('loading').innerHTML = '<div class="msg">โหลดนานผิดปกติ — สัญญาณอาจไม่ดี<br><button type="button" class="more" onclick="location.reload()">ลองใหม่</button></div>';
+}, 12000);
 async function init() {
   $('ver').textContent = 'v' + FORM_VERSION;
   try {
     await liff.init({ liffId: LIFF_ID });
+    if (!liff.isInClient() && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) && !liff.isLoggedIn()) { desktopNote(); return; }
     if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
     const d = liff.getDecodedIDToken && liff.getDecodedIDToken();
     if (!d || !d.exp || d.exp * 1000 < Date.now() + 30000) { liff.logout(); liff.login({ redirectUri: location.href }); return; }
@@ -291,7 +358,7 @@ async function init() {
   const c = readCache();
   if (c) {   // show the last list right away; the fresh one replaces it in a few seconds
     applyVenues(c.v, c.at); S.me = c.me || null; S.meT = c.meT || 0;
-    S.origin = S.me; showApp(); render();
+    S.origin = S.me; showApp(); rerender();
   }
   reload(false, !c);
 }
